@@ -201,8 +201,16 @@ void loop()
     tampil_text(text_run);
   }
   else
-    for (unsigned char a = 0; a < 38; a++)
+  {
+    for (unsigned char a = 0; a < 40; a++)
+    {
       shiftOut_cepat(255);
+    }
+    for (uint8_t i = 0; i < 4; i++)
+    {
+      shiftOut_cepat(0);  
+    }    
+  }
   tombol();
 }
 //=========================================================================================================================
