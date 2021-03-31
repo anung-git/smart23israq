@@ -29,7 +29,10 @@
 
 byte sqw;
 unsigned long previousMillis = 0;  
-const byte data_jam[]=  {119, 20, 179, 182, 212, 230, 231, 52, 247, 246,0};//{136 ,238 ,73 ,76 ,46 ,28 ,24 ,206 ,8 ,12 ,255};
+//2,3 inchi
+const byte data_jam[]=  {119, 20, 179, 182, 212, 230, 231, 52, 247, 246,0};
+//1,8 inchi
+// const byte data_jam[]=  {136 ,238 ,73 ,76 ,46 ,28 ,24 ,206 ,8 ,12 ,255};
 const byte data_kalender []={129 ,237 ,67 ,73 ,45 ,25 ,17 ,205 ,1 ,9 ,255};
 const byte data_jadwal []={129 ,237 ,67 ,73 ,45 ,25 ,17 ,205 ,1 ,9 ,255};
 
@@ -222,6 +225,7 @@ const PROGMEM  uint8_t dataKalender []={
   kt,ka,kr,kt,ki,kl,k_,data_kalender[6], //25
   kk,kh,ku,kt,kb,ka,kh,k_, //26
   k_,k_,k_,k_,k_,k_,k_,k_, //27
+  // kd,ku,kh,ka,k_,k_,k_,k_, //28
   ki,ks,kr,ka,kq,k_,k_,k_, //28
   
 };

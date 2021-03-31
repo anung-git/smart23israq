@@ -607,11 +607,11 @@ void tombol()
           ;
         delay(500);
         parameter.kota = set_parameter(set_kota, parameter.kota, 0, 316);
-        parameter.tambah_kurang_subuh = set_parameter(tmbah_kurang, parameter.tambah_kurang_subuh, -10, 10);
-        parameter.tambah_kurang_duhur = set_parameter(tmbah_kurang, parameter.tambah_kurang_duhur, -10, 10);     //parameter.tambah_kurang_subuh;
-        parameter.tambah_kurang_ashar = set_parameter(tmbah_kurang, parameter.tambah_kurang_ashar, -10, 10);     // parameter.tambah_kurang_subuh;
-        parameter.tambah_kurang_maghrib = set_parameter(tmbah_kurang, parameter.tambah_kurang_maghrib, -10, 10); //parameter.tambah_kurang_subuh;
-        parameter.tambah_kurang_isya = set_parameter(tmbah_kurang, parameter.tambah_kurang_isya, -10, 10);       // parameter.tambah_kurang_subuh;
+        parameter.tambah_kurang_subuh = set_parameter(subuh, parameter.tambah_kurang_subuh, -10, 10);
+        parameter.tambah_kurang_duhur = set_parameter(duhur, parameter.tambah_kurang_duhur, -10, 10);     //parameter.tambah_kurang_subuh;
+        parameter.tambah_kurang_ashar = set_parameter(ashar, parameter.tambah_kurang_ashar, -10, 10);     // parameter.tambah_kurang_subuh;
+        parameter.tambah_kurang_maghrib = set_parameter(magrib, parameter.tambah_kurang_maghrib, -10, 10); //parameter.tambah_kurang_subuh;
+        parameter.tambah_kurang_isya = set_parameter(isya, parameter.tambah_kurang_isya, -10, 10);       // parameter.tambah_kurang_subuh;
         parameter.tartil_subuh = set_parameter(tlwh_1, parameter.tartil_subuh, 0, 99);
         parameter.tartil_duhur = set_parameter(tlwh_2, parameter.tartil_duhur, 0, 99);
         parameter.tartil_ashar = set_parameter(tlwh_3, parameter.tartil_ashar, 0, 99);
@@ -932,7 +932,7 @@ void baca_jadwal(int daerah)
   data[waktu_subuh] = (hours * 60) + minutes;
 
   get_float_time_parts(times[1], hours, minutes);
-  israq = (hours * 60) + minutes + 15;
+  israq = (hours * 60) + minutes +15;
   get_float_time_parts(times[2], hours, minutes);
   data[waktu_duhur] = (hours * 60) + minutes;
   get_float_time_parts(times[3], hours, minutes);
@@ -984,7 +984,12 @@ void shiftOut_cepat(uint8_t value)
 void tampil_segmen()
 {
   clear_strobe_segmen();
-
+  // 1,8 inchi
+  // if (sqw == HIGH)
+  //   segmen[2] = segmen[2] & 0xf7;
+  // else
+  //   segmen[2] = segmen[2] | 0x08;
+  // 2,3 inchi
   if (sqw == HIGH)
     segmen[1] = segmen[1] & 0xf7;
   else
