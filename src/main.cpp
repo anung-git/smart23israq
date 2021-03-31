@@ -431,8 +431,8 @@ void set_waktu(byte a, int b, int c)
       switch (a)
       {
       case menit:
-        segmen[2] = data_kalender[10];
-        segmen[3] = data_kalender[10];
+        segmen[2] = data_jam[10];
+        segmen[3] = data_jam[10];
         break;
       case jam:
         segmen[0] = data_jam[10];
@@ -1053,10 +1053,10 @@ void refres(byte mode)
     int hour = israq / 60;
     int minut = israq % 60;
 
-    segmen[36] = (data_jam[hour / 10]);
-    segmen[37] = (data_jam[hour % 10]);
-    segmen[38] = (data_jam[minut / 10]);
-    segmen[39] = (data_jam[minut % 10]);
+    segmen[36] = (data_jadwal[hour / 10]);
+    segmen[37] = (data_jadwal[hour % 10]);
+    segmen[38] = (data_jadwal[minut / 10]);
+    segmen[39] = (data_jadwal[minut % 10]);
     // segmen[12]=(data_jadwal[(data[waktu_imsya]/60)/10]);
     // segmen[13]=(data_jadwal[(data[waktu_imsya]/60)%10]);
     // segmen[14]=(data_jadwal[(data[waktu_imsya]%60)/10]);
