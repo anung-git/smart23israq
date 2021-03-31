@@ -34,7 +34,7 @@ void tombol();
 #define DISPLAYS_ACROSS 2
 #define DISPLAYS_DOWN 1
 
-#define pinLampu 14
+#define pinLampu 6
 #define LAMPUON HIGH
 #define LAMPUOFF LOW
 
