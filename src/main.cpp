@@ -208,8 +208,8 @@ void loop()
     }
     for (uint8_t i = 0; i < 4; i++)
     {
-      shiftOut_cepat(0);  
-    }    
+      shiftOut_cepat(0);
+    }
   }
   tombol();
 }
@@ -608,10 +608,10 @@ void tombol()
         delay(500);
         parameter.kota = set_parameter(set_kota, parameter.kota, 0, 316);
         parameter.tambah_kurang_subuh = set_parameter(subuh, parameter.tambah_kurang_subuh, -10, 10);
-        parameter.tambah_kurang_duhur = set_parameter(duhur, parameter.tambah_kurang_duhur, -10, 10);     //parameter.tambah_kurang_subuh;
-        parameter.tambah_kurang_ashar = set_parameter(ashar, parameter.tambah_kurang_ashar, -10, 10);     // parameter.tambah_kurang_subuh;
+        parameter.tambah_kurang_duhur = set_parameter(duhur, parameter.tambah_kurang_duhur, -10, 10);      //parameter.tambah_kurang_subuh;
+        parameter.tambah_kurang_ashar = set_parameter(ashar, parameter.tambah_kurang_ashar, -10, 10);      // parameter.tambah_kurang_subuh;
         parameter.tambah_kurang_maghrib = set_parameter(magrib, parameter.tambah_kurang_maghrib, -10, 10); //parameter.tambah_kurang_subuh;
-        parameter.tambah_kurang_isya = set_parameter(isya, parameter.tambah_kurang_isya, -10, 10);       // parameter.tambah_kurang_subuh;
+        parameter.tambah_kurang_isya = set_parameter(isya, parameter.tambah_kurang_isya, -10, 10);         // parameter.tambah_kurang_subuh;
         parameter.tartil_subuh = set_parameter(tlwh_1, parameter.tartil_subuh, 0, 99);
         parameter.tartil_duhur = set_parameter(tlwh_2, parameter.tartil_duhur, 0, 99);
         parameter.tartil_ashar = set_parameter(tlwh_3, parameter.tartil_ashar, 0, 99);
@@ -704,20 +704,33 @@ void alarm(void)
     }
   };
   if (waktu_alaram == data[waktu_subuh])
+  {
+    myDFPlayer.play(116);
     alarm_on(waktu_subuh);
+  }
   if (waktu_alaram == data[waktu_duhur])
   {
+    myDFPlayer.play(115);
     if (data[hari] == jumat)
       alarm_on(waktu_jumat);
     else
       alarm_on(waktu_duhur);
   }
   if (waktu_alaram == data[waktu_ashar])
+  {
+    myDFPlayer.play(115);
     alarm_on(waktu_ashar);
+  }
   if (waktu_alaram == data[waktu_magrib])
+  {
+    myDFPlayer.play(115);
     alarm_on(waktu_magrib);
+  }
   if (waktu_alaram == data[waktu_isya])
+  {
+    myDFPlayer.play(115);
     alarm_on(waktu_isya);
+  }
 }
 
 void tampil_alarm(byte AL)
@@ -750,9 +763,6 @@ void alarm_on(byte sholat)
   int count_iqomah;
   int stanby_sholat;
   alamat_eprom = 0;
-  myDFPlayer.stop();
-  delay(100);
-  myDFPlayer.play(115);
   beep_alarm = parameter.beep; // parameter.beep;
   if (sholat == waktu_subuh)
   {
@@ -934,7 +944,7 @@ void baca_jadwal(int daerah)
   data[waktu_subuh] = (hours * 60) + minutes;
 
   get_float_time_parts(times[1], hours, minutes);
-  israq = (hours * 60) + minutes +15;
+  israq = (hours * 60) + minutes + 15;
   get_float_time_parts(times[2], hours, minutes);
   data[waktu_duhur] = (hours * 60) + minutes;
   get_float_time_parts(times[3], hours, minutes);
@@ -987,15 +997,15 @@ void tampil_segmen()
 {
   clear_strobe_segmen();
   // 1,8 inchi
-  // if (sqw == HIGH)
-  //   segmen[2] = segmen[2] & 0xf7;
-  // else
-  //   segmen[2] = segmen[2] | 0x08;
-  // 2,3 inchi
   if (sqw == HIGH)
-    segmen[1] = segmen[1] & 0xf7;
+    segmen[2] = segmen[2] & 0xf7;
   else
-    segmen[1] = segmen[1] | 0x08;
+    segmen[2] = segmen[2] | 0x08;
+  // 2,3 inchi
+  // if (sqw == HIGH)
+  //   segmen[1] = segmen[1] & 0xf7;
+  // else
+  //   segmen[1] = segmen[1] | 0x08;
 
   // for (unsigned char i = 0; i < 36; i++)
   for (unsigned char i = 39; i < 40; i--)
