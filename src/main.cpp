@@ -985,15 +985,15 @@ void tampil_segmen()
 {
   clear_strobe_segmen();
   // 1,8 inchi
-  // if (sqw == HIGH)
-  //   segmen[2] = segmen[2] & 0xf7;
-  // else
-  //   segmen[2] = segmen[2] | 0x08;
-  // 2,3 inchi
   if (sqw == HIGH)
-    segmen[1] = segmen[1] & 0xf7;
+    segmen[2] = segmen[2] & 0xf7;
   else
-    segmen[1] = segmen[1] | 0x08;
+    segmen[2] = segmen[2] | 0x08;
+  // 2,3 inchi
+  // if (sqw == HIGH)
+  //   segmen[1] = segmen[1] & 0xf7;
+  // else
+  //   segmen[1] = segmen[1] | 0x08;
 
   // for (unsigned char i = 0; i < 36; i++)
   for (unsigned char i = 39; i < 40; i--)
