@@ -18,6 +18,7 @@ private:
     Alamat alamat = Alamat();
     unsigned char jadwal[14];
     char offsite[5];
+    int _fix[5];
     void lookupJadwal(unsigned char tanggal, unsigned char bulan, int tahun);
 
 public:
@@ -37,6 +38,12 @@ public:
     void setOffsiteAshar(char offsite);
     void setOffsiteMaghrib(char offsite);
     void setOffsiteIsya(char offsite);
+
+    void setFixSubuh(int fix);
+    void setFixDzuhur(int fix);
+    void setFixAshar(int fix);
+    void setFixMaghrib(int fix);
+    void setFixIsya(int fix);
 
     void getImsya(unsigned char &jam, unsigned char &menit);
     void getSubuh(unsigned char &jam, unsigned char &menit);

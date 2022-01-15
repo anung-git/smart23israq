@@ -92,13 +92,7 @@ struct MyObject
   int timeOff;
 };
 
-// #define detik 0
-// #define menit 1
-// #define jam 2
-// #define hari 3
-// #define tanggal 4
-// #define bulan 5
-// #define tahun 6
+
 #define waktu_imsya 7
 #define waktu_subuh 8
 #define waktu_duhur 9

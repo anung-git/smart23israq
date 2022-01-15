@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 #include <Wire.h>
 #include "var.h"
-#include "PrayerTimes.h"
+// #include "PrayerTimes.h"
 #include "kota.h"
 #include "TimerThree.h"
 #include "DFRobotDFPlayerMini.h"
@@ -16,12 +16,13 @@
 #include "Segmen.h"
 #include "Event.h"
 #include "Jadwal.h"
+#include "Alamat.h"
 
 void reset();
 void baca_jadwal(int daerah);
 void display_eprom(int add);
 void tampil_text(int _alamat_text);
-void alarm_on(unsigned char sholat);
+void alarm_on();
 void alarm();
 // void tombol();
 
@@ -48,12 +49,11 @@ Segmen mySegmen = Segmen();
 DFRobotDFPlayerMini myDFPlayer;
 MyObject parameter; // Variable to store custom object read from EEPROM.
 Jadwal jadwal = Jadwal();
+Alamat alamat = Alamat();
 //==================================
 // Var Global
-double times[sizeof(TimeName) / sizeof(char *)];
 long timer;
 volatile int alamat_eprom = 0;
-int suruq;
 unsigned char temp_min, temp_jam, temp_hri, rename_bt = 0; //, limaDetik;
 unsigned char jam, menit, hari;
 
@@ -84,11 +84,6 @@ void setup()
   }
   myDFPlayer.begin(Serial);
   myDFPlayer.setTimeOut(500);
-  set_calc_method(ISNA);
-  set_asr_method(Shafii);
-  set_high_lats_adjust_method(AngleBased);
-  set_fajr_angle(20);
-  set_isha_angle(18);
   dmd.selectFont(myFont);
   dmd.setBrightness(7);
   // if (digitalRead(tombol_up) == LOW)
@@ -211,49 +206,16 @@ void alarm(void)
   }
 
   // Masuk waktu sholat
-  if (waktu_alaram == data[waktu_imsya])
+
+  jadwal.setJam(myRtc.getJam(), myRtc.getMenit());
+  unsigned char alaram = jadwal.getAlarm();
+  if (alaram != alamat.ALARM_OFF)
   {
-    alarm_on(waktu_imsya);
-  }
-  if (waktu_alaram == suruq)
-  {
-    alarm_on(waktu_suruq);
-  }
-  if (waktu_alaram == data[waktu_subuh])
-  {
-    myDFPlayer.playFolder(1, 1); // play adzan
-    alarm_on(waktu_subuh);
-  }
-  if (waktu_alaram == data[waktu_duhur])
-  {
-    myDFPlayer.playFolder(1, 2); // play adzan
-    if (myRtc.getHari() == jumat)
-    {
-      alarm_on(waktu_jumat);
-    }
-    else
-    {
-      alarm_on(waktu_duhur);
-    }
-  }
-  if (waktu_alaram == data[waktu_ashar])
-  {
-    myDFPlayer.playFolder(1, 3); // play adzan
-    alarm_on(waktu_ashar);
-  }
-  if (waktu_alaram == data[waktu_magrib])
-  {
-    myDFPlayer.playFolder(1, 4); // play adzan
-    alarm_on(waktu_magrib);
-  }
-  if (waktu_alaram == data[waktu_isya])
-  {
-    myDFPlayer.playFolder(1, 5); // play adzan
-    alarm_on(waktu_isya);
+    alarm_on();
   }
 }
 
-void alarm_on(uint8_t sholat)
+void alarm_on()
 { // time out adzan
   uint8_t beep_alarm = 3;
   int time_adzan;
@@ -262,75 +224,80 @@ void alarm_on(uint8_t sholat)
   int stanby_sholat;
   alamat_eprom = 0;
   // beep_alarm = parameter.beep; // parameter.beep;
-  if (sholat == waktu_suruq)
+  switch (jadwal.getAlarm())
   {
-    time_adzan = 60;
-    display_eprom(text_run);
-    _alamat_text = text_run;
-    mySegmen.displaySuruq();
-  }
-  if (sholat == waktu_imsya)
-  {
+  case alamat.ALARM_IMSYA:
     time_adzan = 60;
     display_eprom(text_run);
     _alamat_text = text_run;
     mySegmen.displayImsya();
-  }
-  if (sholat == waktu_subuh)
-  {
+    break;
+  case alamat.ALARM_SUBUH:
     time_adzan = parameter.timer_adzan_subuh * 60;
     count_iqomah = 60 * parameter.iqomah_subuh;
     stanby_sholat = parameter.lama_sholat_subuh;
     display_eprom(text_iq_subuh);
     _alamat_text = text_iq_subuh;
     mySegmen.displaySubuh();
-  }
-  if (sholat == waktu_duhur)
-  {
+    myDFPlayer.playFolder(1, 1); // play adzan
+    break;
+  case alamat.ALARM_SURUQ:
+    time_adzan = 60;
+    display_eprom(text_run);
+    _alamat_text = text_run;
+    mySegmen.displaySuruq();
+    break;
+
+  case alamat.ALARM_DZUHUR:
     time_adzan = parameter.timer_adzan_duhur * 60;
     count_iqomah = 60 * parameter.iqomah_duhur;
     stanby_sholat = parameter.lama_sholat_duhur;
     display_eprom(text_iq_duhur);
     _alamat_text = text_iq_duhur;
     mySegmen.displayDzuhur();
-  }
-  if (sholat == waktu_ashar)
-  {
+    myDFPlayer.playFolder(1, 2); // play adzan
+    break;
+  case alamat.ALARM_ASHAR:
     time_adzan = parameter.timer_adzan_ashar * 60;
     count_iqomah = 60 * parameter.iqomah_ashar;
     stanby_sholat = parameter.lama_sholat_ashar;
     display_eprom(text_iq_ashar);
     _alamat_text = text_iq_ashar;
     mySegmen.displayAshar();
-  }
-  if (sholat == waktu_magrib)
-  {
+    myDFPlayer.playFolder(1, 3); // play adzan
+    break;
+  case alamat.ALARM_MAGHRIB:
     time_adzan = parameter.timer_adzan_maghrib * 60;
     count_iqomah = 60 * parameter.iqomah_maghrib;
     stanby_sholat = parameter.lama_sholat_maghrib;
     display_eprom(text_iq_maghrib);
     _alamat_text = text_iq_maghrib;
     mySegmen.displayMaghrib();
-  }
-  if (sholat == waktu_isya)
-  {
+    myDFPlayer.playFolder(1, 4); // play adzan
+    break;
+  case alamat.ALARM_ISYA:
     time_adzan = parameter.timer_adzan_isya * 60;
     count_iqomah = 60 * parameter.iqomah_isya;
     stanby_sholat = parameter.lama_sholat_isya;
     display_eprom(text_iq_isya);
     _alamat_text = text_iq_isya;
     mySegmen.displayIsya();
+    myDFPlayer.playFolder(1, 5); // play adzan
+    break;
+  default:
+    break;
   }
-  if (sholat == waktu_jumat)
-  {
-    beep_alarm = 0; // parameter.beep;
-    time_adzan = parameter.timer_adzan_jumat * 60;
-    count_iqomah = 60 * parameter.iqomah_jumat;
-    stanby_sholat = parameter.lama_sholat_jumat;
-    display_eprom(text_iq_jumat);
-    _alamat_text = text_iq_jumat;
-    mySegmen.displayJumat();
-  }
+
+  // if (sholat == waktu_jumat)
+  // {
+  //   beep_alarm = 0; // parameter.beep;
+  //   time_adzan = parameter.timer_adzan_jumat * 60;
+  //   count_iqomah = 60 * parameter.iqomah_jumat;
+  //   stanby_sholat = parameter.lama_sholat_jumat;
+  //   display_eprom(text_iq_jumat);
+  //   _alamat_text = text_iq_jumat;
+  //   mySegmen.displayJumat();
+  // }
   time_adzan = 1 * 60;
   myBuzer.onRepeat(beep_alarm, 500);
   while (time_adzan)
@@ -351,15 +318,15 @@ void alarm_on(uint8_t sholat)
     tampil_text(_alamat_text);
   }
   // time iqomah count down
-  if (sholat == waktu_jumat)
+  if (jadwal.getAlarm() == alamat.ALARM_SURUQ)
   {
     return;
   }
-  if (sholat == waktu_suruq)
+  if (jadwal.getAlarm() == alamat.ALARM_IMSYA)
   {
     return;
   }
-  if (sholat == waktu_imsya)
+  if (jadwal.getAlarm() == alamat.ALARM_JUMAT)
   {
     return;
   }
@@ -426,59 +393,25 @@ void baca_jadwal(int daerah)
 {
   float lt = pgm_read_float(lintang + daerah);
   float bj = pgm_read_float(bujur + daerah);
+  unsigned char jam, menit;
   unsigned char wkt = pgm_read_byte_near(gmt + daerah);
-  int hours, minutes;
   if (daerah == 0)
   {
     wkt = parameter.set_kota_gmt;
     lt = parameter.set_kota_lnt;
     bj = parameter.set_kota_bjr;
   }
-  get_prayer_times(myRtc.getTahun(), myRtc.getBulan(), myRtc.getTanggal(), lt, bj, wkt, times);
-  get_float_time_parts(times[0], hours, minutes);
-  data[waktu_subuh] = (hours * 60) + minutes;
-
-  get_float_time_parts(times[1], hours, minutes);
-  // suruq = (hours * 60) + minutes + 15;
-  suruq = (hours * 60) + minutes;
-  get_float_time_parts(times[2], hours, minutes);
-  data[waktu_duhur] = (hours * 60) + minutes;
-  get_float_time_parts(times[3], hours, minutes);
-  data[waktu_ashar] = (hours * 60) + minutes;
-  get_float_time_parts(times[5], hours, minutes);
-  data[waktu_magrib] = (hours * 60) + minutes;
-  get_float_time_parts(times[6], hours, minutes);
-  data[waktu_isya] = (hours * 60) + minutes;
-  data[waktu_subuh] = data[waktu_subuh] + 2;
-  data[waktu_duhur] = data[waktu_duhur] + 2;
-  data[waktu_ashar] = data[waktu_ashar] + 2;
-  data[waktu_magrib] = data[waktu_magrib] + 2;
-  data[waktu_isya] = data[waktu_isya] + 2;
-
-  data[waktu_subuh] = data[waktu_subuh] + parameter.tambah_kurang_subuh;
-  data[waktu_duhur] = data[waktu_duhur] + parameter.tambah_kurang_duhur;
-  data[waktu_ashar] = data[waktu_ashar] + parameter.tambah_kurang_ashar;
-  data[waktu_magrib] = data[waktu_magrib] + parameter.tambah_kurang_maghrib;
-  data[waktu_isya] = data[waktu_isya] + parameter.tambah_kurang_isya;
-  if (parameter.jadwal_fix_subuh > 0)
-    data[waktu_subuh] = parameter.jadwal_fix_subuh;
-  if (parameter.jadwal_fix_duhur > 0)
-    data[waktu_duhur] = parameter.jadwal_fix_duhur;
-  if (parameter.jadwal_fix_ashar > 0)
-    data[waktu_ashar] = parameter.jadwal_fix_ashar;
-  if (parameter.jadwal_fix_maghrib > 0)
-    data[waktu_magrib] = parameter.jadwal_fix_maghrib;
-  if (parameter.jadwal_fix_isya > 0)
-    data[waktu_isya] = parameter.jadwal_fix_isya;
-  data[waktu_imsya] = data[waktu_subuh] - 10;
-
   // baca jadwal
-  unsigned char jam, menit;
   jadwal.setOffsiteSubuh(parameter.tambah_kurang_subuh);
   jadwal.setOffsiteDzuhur(parameter.tambah_kurang_duhur);
   jadwal.setOffsiteAshar(parameter.tambah_kurang_ashar);
   jadwal.setOffsiteMaghrib(parameter.tambah_kurang_maghrib);
   jadwal.setOffsiteIsya(parameter.tambah_kurang_isya);
+  jadwal.setFixSubuh(parameter.jadwal_fix_subuh);
+  jadwal.setFixDzuhur(parameter.jadwal_fix_duhur);
+  jadwal.setFixAshar(parameter.jadwal_fix_ashar);
+  jadwal.setFixMaghrib(parameter.jadwal_fix_maghrib);
+  jadwal.setFixIsya(parameter.jadwal_fix_isya);
   jadwal.setZona(wkt);
   jadwal.setBujur(bj);
   jadwal.setLintang(lt);

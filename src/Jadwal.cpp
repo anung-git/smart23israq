@@ -25,6 +25,27 @@ void Jadwal::setZona(unsigned char zona)
 {
     _zona = zona;
 }
+
+void Jadwal::setFixSubuh(int fix)
+{
+    _fix[0] = fix;
+}
+void Jadwal::setFixDzuhur(int fix)
+{
+    _fix[1] = fix;
+}
+void Jadwal::setFixAshar(int fix)
+{
+    _fix[2] = fix;
+}
+void Jadwal::setFixMaghrib(int fix)
+{
+    _fix[3] = fix;
+}
+void Jadwal::setFixIsya(int fix)
+{
+    _fix[4] = fix;
+}
 void Jadwal::setOffsiteSubuh(char offsite)
 {
     this->offsite[0] = offsite;
@@ -74,24 +95,43 @@ void Jadwal::lookupJadwal(unsigned char tanggal, unsigned char bulan, int tahun)
 
     // subuh
     calc = (jadwal[2] * 60) + jadwal[3] + 2 + offsite[0];
+    if (_fix[0] > 0)
+    {
+        calc = _fix[0];
+    }
     jadwal[2] = calc / 60;
     jadwal[3] = calc % 60;
 
     // dzuhur
     calc = (jadwal[4] * 60) + jadwal[5] + 2 + offsite[1];
+    if (_fix[1] > 0)
+    {
+        calc = _fix[1];
+    }
     jadwal[4] = calc / 60;
     jadwal[5] = calc % 60;
     // ashar
     calc = (jadwal[6] * 60) + jadwal[7] + 2 + offsite[2];
-    calc += 2;
+    if (_fix[2] > 0)
+    {
+        calc = _fix[2];
+    }
     jadwal[6] = calc / 60;
     jadwal[7] = calc % 60;
     // maghrib
     calc = (jadwal[8] * 60) + jadwal[9] + 2 + offsite[3];
+    if (_fix[3] > 0)
+    {
+        calc = _fix[3];
+    }
     jadwal[8] = calc / 60;
     jadwal[9] = calc % 60;
     // isya
     calc = (jadwal[10] * 60) + jadwal[11] + 2 + offsite[4];
+    if (_fix[4] > 0)
+    {
+        calc = _fix[4];
+    }
     jadwal[10] = calc / 60;
     jadwal[11] = calc % 60;
 }
@@ -113,6 +153,10 @@ void Jadwal::setJam(unsigned char jam, unsigned char menit)
     if (jam == jadwal[2] && menit == jadwal[3])
     {
         alarm_status = alamat.ALARM_SUBUH;
+    }
+    if (jam == jadwal[12] && menit == jadwal[13])
+    {
+        alarm_status = alamat.ALARM_SURUQ;
     }
     if (jam == jadwal[4] && menit == jadwal[5])
     {
