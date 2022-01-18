@@ -4,6 +4,9 @@
 #define OFF 0xFF
 #define ON 0x00
 
+#define LAYER_JAM_OFF 0xFF
+#define LAYER_JAM_ON 0x00
+
 // #define ka 123
 // #define kb 124
 // #define kd 121
@@ -87,17 +90,16 @@ private:
   // uint16_t compare;
   volatile unsigned char layer[42];
   volatile unsigned char buffer[42];
-// 2,3 inchi
-// const byte dataJam[] = {119, 20, 179, 182, 212, 230, 231, 52, 247, 246, 0};
-// 1,8 inchi
-// const byte dataJam[] = {136, 238, 73, 76, 46, 28, 24, 206, 8, 12, 255};
+  // 2,3 inchi
+  // const byte dataJam[] = {119, 20, 179, 182, 212, 230, 231, 52, 247, 246, 0};
+  // 1,8 inchi
+  // const byte dataJam[] = {136, 238, 73, 76, 46, 28, 24, 206, 8, 12, 255};
   const unsigned char dataJam[11] = {136, 238, 73, 76, 46, 28, 24, 206, 8, 12, 255};
   const unsigned char dataKalender[11] = {129, 237, 67, 73, 45, 25, 17, 205, 1, 9, 255};
   const unsigned char dataJadwal[11] = {129, 237, 67, 73, 45, 25, 17, 205, 1, 9, 255};
 
   unsigned char bagiSepuluh(unsigned char nilai);
   unsigned char sisaBagiSepuluh(unsigned char nilai);
-
 
   const unsigned char segment_data = 3;
   const unsigned char segment_clk = 2;
@@ -116,15 +118,16 @@ private:
     modeIsya,
     modeIqomah,
     modeKutbah,
-    modeJamOff,
-    modeMenitOff,
-    modeTanggalOff,
-    modeBualnOff,
-    modeTahunOff,
+    modeSetJam,
+    modeSetMenit,
+    modeSetTanggal,
+    modeSetBulan,
+    modeSetTahun,
   };
 
   void shiftOut(uint8_t value);
   void displaySholat(unsigned char sholat);
+
 public:
   enum tampilKalender
   {
@@ -169,6 +172,7 @@ public:
   void setMaghrib(unsigned char hour, unsigned char min);
   void setIsya(unsigned char hour, unsigned char min);
   void displayHari(unsigned char day);
+  void displayNormal();
   void displayTogleOff();
   void displayImsya();
   void displaySubuh();
@@ -179,12 +183,13 @@ public:
   void displayMaghrib();
   void displayIsya();
   void displayIqomah();
-  void displayNormal();
-  void displayJamOff();
-  void displayMenitOff();
-  void displayTanggalOff();
-  void displayBualnOff();
-  void displayTahunOff();
+
+  void displaySetJam();
+  void displaySetMenit();
+  void displaySetTanggal();
+  void displaySetBulan();
+  void displaySetTahun();
+
   void displayOff();
 };
 #endif

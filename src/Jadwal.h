@@ -45,6 +45,9 @@ public:
     void setFixMaghrib(int fix);
     void setFixIsya(int fix);
 
+    // index (0=imsya,1=subuh,2=dzuhur,3=ashar,4=maghrb,5=isya,6=suruq,)
+    bool getAlarmByOffsite(uint8_t index, uint8_t jam, uint8_t menit, int offsite);
+
     void getImsya(unsigned char &jam, unsigned char &menit);
     void getSubuh(unsigned char &jam, unsigned char &menit);
     void getSuruq(unsigned char &jam, unsigned char &menit);

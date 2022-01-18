@@ -1,7 +1,7 @@
 #if !defined(var_h)
 #define var_h
 
-#define buzer 2
+#define buzerPin 2
 
 #define tombol_up 5
 #define tombol_menu 45
@@ -171,6 +171,6 @@ struct MyObject
 
 // };
 
-int data[20];
+
 
 #endif // var_h

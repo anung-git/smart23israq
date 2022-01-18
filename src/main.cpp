@@ -3,7 +3,6 @@
 #include <EEPROM.h>
 #include <Wire.h>
 #include "var.h"
-// #include "PrayerTimes.h"
 #include "kota.h"
 #include "TimerThree.h"
 #include "DFRobotDFPlayerMini.h"
@@ -18,17 +17,19 @@
 #include "Jadwal.h"
 #include "Alamat.h"
 
+#include "Tombol.h"
+
 void reset();
 void baca_jadwal(int daerah);
 void display_eprom(int add);
 void tampil_text(int _alamat_text);
 void alarm_on();
 void alarm();
-// void tombol();
+void setJam();
 
 //====================================
 #define bluetooth 9600 // 38400              //jika hc 06 atau hc05 ganti dengan 38400
-#define runingTextSpeed 40
+#define runingTextSpeed 38
 #define namaBluetooth "Jws Basmalla"
 #define DISPLAYS_ACROSS 2
 #define DISPLAYS_DOWN 1
@@ -37,12 +38,17 @@ void alarm();
 #define LAMPUON HIGH
 #define LAMPUOFF LOW
 
-// Object Declaration
+#define tombol_up 5
+#define tombol_menu 45
+#define tombol_down 46
 
+// Object Declaration
+Tombol myTombol = Tombol(tombol_menu, tombol_up, tombol_down);
 Power power = Power();
 Event second = Event(1000);
 Event event300ms = Event(300);
-Buzer myBuzer = Buzer(buzer);
+Event textSpeed = Event(runingTextSpeed);
+Buzer myBuzer = Buzer(buzerPin);
 DMD dmd(DISPLAYS_ACROSS, DISPLAYS_DOWN);
 Rtc myRtc = Rtc();
 Segmen mySegmen = Segmen();
@@ -52,7 +58,6 @@ Jadwal jadwal = Jadwal();
 Alamat alamat = Alamat();
 //==================================
 // Var Global
-long timer;
 volatile int alamat_eprom = 0;
 unsigned char temp_min, temp_jam, temp_hri, rename_bt = 0; //, limaDetik;
 unsigned char jam, menit, hari;
@@ -63,15 +68,10 @@ void ScanDMD()
 }
 void setup()
 {
-  timer = millis();
   pinMode(tombol_up, INPUT_PULLUP);
   pinMode(tombol_menu, INPUT_PULLUP);
   pinMode(tombol_down, INPUT_PULLUP);
   pinMode(pinLampu, OUTPUT);
-  Serial1.begin(bluetooth);
-  Serial.begin(9600);
-  Wire.begin();
-  Serial1.setTimeout(200);
   dmd.clearScreen(true);
   Timer3.initialize(800); // period in microseconds to call ScanDMD. Anything longer than 5000 (5ms) and you can see flicker.
   Timer3.attachInterrupt(ScanDMD);
@@ -82,6 +82,10 @@ void setup()
     myBuzer.setOff();
     delay(250);
   }
+  Serial1.begin(bluetooth);
+  Serial.begin(9600);
+  Wire.begin();
+  Serial1.setTimeout(200);
   myDFPlayer.begin(Serial);
   myDFPlayer.setTimeOut(500);
   dmd.selectFont(myFont);
@@ -107,6 +111,7 @@ void setup()
 
   power.setTimeOn(3 * 60);
   power.setTimeOff(22 * 60);
+  myTombol.setBuzer(&myBuzer);
 }
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -154,59 +159,166 @@ void loop()
     dmd.clearScreen(true);
     mySegmen.displayOff();
   }
-  // tombol();
+  myTombol.loop();
   mySegmen.loop();
+  if (myTombol.getPos() == 1)
+  {
+    setJam();
+  }
 }
+
 /***********************************************************************************/
+void setJam()
+{
+  unsigned char jam = myRtc.getJam();
+  unsigned char menit = myRtc.getMenit();
+  unsigned char tanggal = myRtc.getTanggal();
+  unsigned char bulan = myRtc.getBulan();
+  int tahun = myRtc.getTahun();
+  mySegmen.setTanggal(tanggal, bulan, tahun);
+
+  // set jam
+  myTombol.setMax(23);
+  myTombol.setMin(0);
+  myTombol.setValue(jam);
+  mySegmen.displaySetJam();
+  while (myTombol.getPos() == 1)
+  {
+    mySegmen.loop();
+    tampil_text(text_run);
+    myTombol.loop();
+    mySegmen.setTime(jam, menit);
+
+    if (event300ms.getEvent())
+    {
+      mySegmen.displayTogleOff();
+    }
+    jam = myTombol.getValue();
+  }
+  // set menit
+  myTombol.setMax(59);
+  myTombol.setMin(0);
+  myTombol.setValue(menit);
+  mySegmen.displayNormal();
+  mySegmen.displaySetMenit();
+  while (myTombol.getPos() == 2)
+  {
+    mySegmen.loop();
+    tampil_text(text_run);
+    myTombol.loop();
+    mySegmen.setTime(jam, menit);
+
+    if (event300ms.getEvent())
+    {
+      mySegmen.displayTogleOff();
+    }
+    menit = myTombol.getValue();
+  }
+  myRtc.setJam(jam, menit, 0);
+  // set tanggal
+  myTombol.setMax(31);
+  myTombol.setMin(1);
+  myTombol.setValue(tanggal);
+  mySegmen.displayNormal();
+  mySegmen.displaySetTanggal();
+  while (myTombol.getPos() == 3)
+  {
+    mySegmen.loop();
+    tampil_text(text_run);
+    myTombol.loop();
+    mySegmen.setTanggal(tanggal, bulan, tahun);
+    if (event300ms.getEvent())
+    {
+      mySegmen.displayTogleOff();
+    }
+    tanggal = myTombol.getValue();
+  }
+  // set bulan
+  myTombol.setMax(12);
+  myTombol.setMin(1);
+  myTombol.setValue(bulan);
+  mySegmen.displayNormal();
+  mySegmen.displaySetBulan();
+  while (myTombol.getPos() == 4)
+  {
+    mySegmen.loop();
+    tampil_text(text_run);
+    myTombol.loop();
+    mySegmen.setTanggal(tanggal, bulan, tahun);
+    if (event300ms.getEvent())
+    {
+      mySegmen.displayTogleOff();
+    }
+    bulan = myTombol.getValue();
+  }
+  // set Tahun
+  myTombol.setMax(2099);
+  myTombol.setMin(2020);
+  myTombol.setValue(tahun);
+  mySegmen.displayNormal();
+  mySegmen.displaySetTahun();
+  while (myTombol.getPos() == 5)
+  {
+    mySegmen.loop();
+    tampil_text(text_run);
+    myTombol.loop();
+    mySegmen.setTanggal(tanggal, bulan, tahun);
+    if (event300ms.getEvent())
+    {
+      mySegmen.displayTogleOff();
+    }
+    tahun = myTombol.getValue();
+  }
+
+  myRtc.setTanggal(tanggal, bulan, tahun);
+
+  mySegmen.displayOff();
+  second.reset();
+  while (myTombol.getPos() == 6)
+  {
+    tampil_text(text_run);
+    myBuzer.loop();
+    mySegmen.loop();
+    if (second.getEvent())
+    {
+      break;
+    }
+  }
+  mySegmen.displayNormal();
+  myTombol.resetMenu();
+  myBuzer.onRepeat(3, 100);
+}
 void alarm(void)
 {
-  int waktu_alaram = myRtc.getIntTime();
   // lampu background on sebelum 15 menit
-  for (uint8_t i = 0; i < 5; i++)
+  for (uint8_t i = 1; i < 6; i++)
   {
-    int dataCompare = data[waktu_subuh + i] - 15;
-    if (waktu_alaram == dataCompare)
+    bool lampu = jadwal.getAlarmByOffsite(i, myRtc.getJam(), myRtc.getMenit(), -15);
+    if (lampu)
     {
       digitalWrite(pinLampu, LAMPUON); // hidupkan lapu
-      break;
     }
   }
   // lampu background  off setelah 30 menit
-  for (uint8_t i = 0; i < 5; i++)
+  for (uint8_t i = 1; i < 6; i++)
   {
-    int dataCompare = data[waktu_subuh + i] + 30;
-    if (waktu_alaram == dataCompare)
+    bool lampu = jadwal.getAlarmByOffsite(i, myRtc.getJam(), myRtc.getMenit(), 30);
+    if (lampu)
     {
       digitalWrite(pinLampu, LAMPUOFF); // matikan lapu
-      break;
     }
   }
   // play mp3 tilawah
-  if (waktu_alaram == data[waktu_subuh] - 10)
+  for (uint8_t i = 1; i < 6; i++)
   {
-    myDFPlayer.playFolder(2, 1);
+    bool play;
+    play = jadwal.getAlarmByOffsite(i, myRtc.getJam(), myRtc.getMenit(), -10);
+    if (play)
+    {
+      myDFPlayer.playFolder(2, i);
+    }
   }
-  if (waktu_alaram == data[waktu_duhur] - 10)
-  {
-    myDFPlayer.playFolder(2, 2); // play  the mp3.
-    // if (data[hari] == jumat)
-    // else
-  }
-  if (waktu_alaram == data[waktu_ashar] - 10)
-  {
-    myDFPlayer.playFolder(2, 3);
-  }
-  if (waktu_alaram == data[waktu_magrib] - 10)
-  {
-    myDFPlayer.playFolder(2, 4);
-  }
-  if (waktu_alaram == data[waktu_isya] - 10)
-  {
-    myDFPlayer.playFolder(2, 5);
-  }
-
   // Masuk waktu sholat
-
   jadwal.setJam(myRtc.getJam(), myRtc.getMenit());
   unsigned char alaram = jadwal.getAlarm();
   if (alaram != alamat.ALARM_OFF)
@@ -312,7 +424,6 @@ void alarm_on()
     {
       mySegmen.displayTogleOff();
     }
-
     myBuzer.loop();
     mySegmen.loop();
     tampil_text(_alamat_text);
@@ -330,7 +441,6 @@ void alarm_on()
   {
     return;
   }
-
   mySegmen.displayIqomah(); // tampil_hari(iqomah);
   myBuzer.onOnce(250);
 
@@ -407,6 +517,7 @@ void baca_jadwal(int daerah)
   jadwal.setOffsiteAshar(parameter.tambah_kurang_ashar);
   jadwal.setOffsiteMaghrib(parameter.tambah_kurang_maghrib);
   jadwal.setOffsiteIsya(parameter.tambah_kurang_isya);
+  // set fix jadwal
   jadwal.setFixSubuh(parameter.jadwal_fix_subuh);
   jadwal.setFixDzuhur(parameter.jadwal_fix_duhur);
   jadwal.setFixAshar(parameter.jadwal_fix_ashar);
@@ -437,13 +548,12 @@ void tampil_text(int _alamat_text)
   {
     serialEventRun();
   }
-  if (millis() - timer >= runingTextSpeed)
+  if (textSpeed.getEvent())
   {
     if (dmd.stepMarquee(-1, 0))
     {
       display_eprom(_alamat_text);
     }
-    timer = millis();
   }
 }
 //

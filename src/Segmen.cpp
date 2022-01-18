@@ -179,7 +179,6 @@ void Segmen::displayTogleOff()
 {
     if (toggle)
     {
-        // this->displayOff();
         this->displayNormal();
         toggle = false;
     }
@@ -215,6 +214,21 @@ void Segmen::displayTogleOff()
         case Segmen::modeIqomah:
             this->displayIqomah();
             break;
+        case Segmen::modeSetJam:
+            this->displaySetJam();
+            break;
+        case Segmen::modeSetMenit:
+            this->displaySetMenit();
+            break;
+        case Segmen::modeSetTanggal:
+            this->displaySetTanggal();
+            break;
+        case Segmen::modeSetBulan:
+            this->displaySetBulan();
+            break;
+        case Segmen::modeSetTahun:
+            this->displaySetTahun();
+            break;
         default:
             break;
         }
@@ -223,7 +237,10 @@ void Segmen::displayTogleOff()
 
 void Segmen::displayNormal()
 {
-    // Segmen::alarm = Segmen::modeNormal;
+    for (unsigned char i = 0; i < 4; i++)
+    {
+        layer[i] = LAYER_JAM_ON;
+    }
     for (unsigned char i = 4; i < 42; i++)
     {
         layer[i] = ON;
@@ -368,43 +385,43 @@ void Segmen::displaySuruq()
     Segmen::displaySholat(Segmen::modeSuruq);
     this->loop();
 }
-void Segmen::displayJamOff()
+void Segmen::displaySetJam()
 {
-    Segmen::alarm = Segmen::modeJamOff;
-    layer[0] = OFF;
-    layer[1] = OFF;
+    Segmen::alarm = Segmen::modeSetJam;
+    layer[0] = LAYER_JAM_OFF;
+    layer[1] = LAYER_JAM_OFF;
 }
-void Segmen::displayMenitOff()
+void Segmen::displaySetMenit()
 {
-    Segmen::alarm = Segmen::modeMenitOff;
-    layer[2] = OFF;
-    layer[3] = OFF;
+    Segmen::alarm = Segmen::modeSetMenit;
+    layer[2] = LAYER_JAM_OFF;
+    layer[3] = LAYER_JAM_OFF;
 }
-void Segmen::displayTanggalOff()
+void Segmen::displaySetTanggal()
 {
-    Segmen::alarm = Segmen::modeTanggalOff;
+    Segmen::alarm = Segmen::modeSetTanggal;
     layer[4] = OFF;
     layer[5] = OFF;
 }
-void Segmen::displayBualnOff()
+void Segmen::displaySetBulan()
 {
-    layer[6] = OFF;
+    Segmen::alarm = Segmen::modeSetBulan;
     layer[7] = OFF;
-    Segmen::alarm = Segmen::modeBualnOff;
-}
-void Segmen::displayTahunOff()
-{
     layer[8] = OFF;
-    layer[9] = OFF;
+}
+void Segmen::displaySetTahun()
+{
+    Segmen::alarm = Segmen::modeSetTahun;
     layer[10] = OFF;
     layer[11] = OFF;
-    Segmen::alarm = Segmen::modeTahunOff;
+    layer[12] = OFF;
+    layer[13] = OFF;
 }
 void Segmen::displayOff()
 {
     // modeOff;
     // Segmen::alarm = Segmen::modeOff;
-    for (unsigned char i = 4; i < 40; i++)
+    for (unsigned char i = 4; i < 42; i++)
     {
         layer[i] = OFF;
     }
@@ -442,11 +459,11 @@ void Segmen::loop()
     {
         if (i > 3)
         {
-            this->shiftOut((buffer[i] | layer[i]));
+            this->shiftOut((buffer[i] | layer[i])); // layer jadwal+kalender
         }
         else
         {
-            this->shiftOut((buffer[i]));
+            this->shiftOut((buffer[i] | layer[i])); // layer jam
         }
     }
     set_strobe();
