@@ -162,6 +162,11 @@ void Jadwal::setAlarm(unsigned char alrm)
 {
     alarm_status = alrm;
 }
+
+void Jadwal::setHari(unsigned char hari)
+{
+    this->hari = hari;
+}
 void Jadwal::setJam(unsigned char jam, unsigned char menit)
 {
     alarm_status = alamat.ALARM_OFF;
@@ -179,7 +184,14 @@ void Jadwal::setJam(unsigned char jam, unsigned char menit)
     }
     if (jam == jadwal[4] && menit == jadwal[5])
     {
-        alarm_status = alamat.ALARM_DZUHUR;
+        if (hari == 5) //jumat
+        {
+            alarm_status = alamat.ALARM_JUMAT;
+        }
+        else
+        {
+            alarm_status = alamat.ALARM_DZUHUR;
+        }
     }
     if (jam == jadwal[6] && menit == jadwal[7])
     {

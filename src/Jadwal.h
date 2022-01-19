@@ -17,6 +17,7 @@ private:
     uint8_t alarm_status;
     Alamat alamat = Alamat();
     unsigned char jadwal[14];
+    unsigned char hari;
     char offsite[5];
     int _fix[5];
     void lookupJadwal(unsigned char tanggal, unsigned char bulan, int tahun);
@@ -29,6 +30,7 @@ public:
     void setAlarm(unsigned char alrm);
     void setTanggal(unsigned char tanggal, unsigned char bulan, int tahun);
     void setJam(unsigned char jam, unsigned char menit);
+    void setHari(unsigned char hari);
 
     void setBujur(float bujur);
     void setLintang(float lintang);

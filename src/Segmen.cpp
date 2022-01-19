@@ -45,6 +45,26 @@ void Segmen::setSqw(bool value)
 {
     sqw = value;
 }
+void Segmen::displayParameter(unsigned char parameter)
+{
+    const unsigned char lookupParameter[120] = {
+        kb, ke, kp, k_, ka, kl, ka, kr, km1, km2,
+        ki, kq, k_, ks, ku, kb, ku, kh, k_, k_,
+        ki, kq, k_, kd, ku, kh, ku, kr, k_, k_,
+        ki, kq, k_, ka, ks, kh, ka, kr, k_, k_,
+        ki, kq, k_, km1, km2, ka, kg, kr, ki, kb,
+        ki, kq, k_, ki, ks, ky, ka, ka, k_, k_,
+        ki, kq, k_, kj, ku, km1, km2, ka, kt, k_,
+        k_, ks, kt, ka, kn, kb, ky, k_, k_, k_,
+        k_, k_, k_, k_, ko, kn, k_, k_, k_, k_,
+        k_, k_, k_, k_, ko, kf, kf, k_, k_, k_,
+        k_, k_, kk, ko, kt, ka, k_, k_, k_, k_,
+        k_, k_, kr, ke, ks, ke, kt, k_, k_, k_};
+    for (unsigned char i = 0; i < 10; i++)
+    {
+        Segmen::buffer[i + 4] = lookupParameter[((parameter)*10) + i];
+    }
+}
 void Segmen::displaySholat(unsigned char sholat)
 {
     const unsigned char lookupSholat[100] = {
@@ -81,7 +101,7 @@ void Segmen::displaySholat(unsigned char sholat)
     };
     for (unsigned char i = 0; i < 10; i++)
     {
-        Segmen::buffer[i + 4] = lookupSholat[((sholat - 2) * 10) + i];
+        Segmen::buffer[i + 4] = lookupSholat[((sholat - this->modeImsya) * 10) + i];
         // layer[i + 4] = ON;
         // pgm_read_byte_near(lookupSholat + ((sholat - 2) * 8) + i);
     }
@@ -228,6 +248,9 @@ void Segmen::displayTogleOff()
             break;
         case Segmen::modeSetTahun:
             this->displaySetTahun();
+            break;
+        case Segmen::modeSetParameter:
+            this->displaySetParameter();
             break;
         default:
             break;
@@ -394,6 +417,14 @@ void Segmen::displaySetJam()
 void Segmen::displaySetMenit()
 {
     Segmen::alarm = Segmen::modeSetMenit;
+    layer[2] = LAYER_JAM_OFF;
+    layer[3] = LAYER_JAM_OFF;
+}
+void Segmen::displaySetParameter()
+{
+    Segmen::alarm = Segmen::modeSetParameter;
+    layer[0] = LAYER_JAM_OFF;
+    layer[1] = LAYER_JAM_OFF;
     layer[2] = LAYER_JAM_OFF;
     layer[3] = LAYER_JAM_OFF;
 }

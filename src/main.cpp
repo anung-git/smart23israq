@@ -27,6 +27,7 @@ void alarm_on();
 void alarm();
 void setJam();
 
+void setParameter();
 //====================================
 #define bluetooth 9600 // 38400              //jika hc 06 atau hc05 ganti dengan 38400
 #define runingTextSpeed 38
@@ -108,9 +109,6 @@ void setup()
   display_eprom(text_run);
   power.setTimeOn(parameter.timeOn);
   power.setTimeOff(parameter.timeOff);
-
-  power.setTimeOn(3 * 60);
-  power.setTimeOff(22 * 60);
   myTombol.setBuzer(&myBuzer);
 }
 
@@ -165,9 +163,155 @@ void loop()
   {
     setJam();
   }
+  if (myTombol.getPos() == 100)
+  {
+    setParameter();
+  }
 }
 
 /***********************************************************************************/
+
+void setParameter()
+{
+  unsigned char jam = 00;
+  // set parameter
+  int param[11];
+  param[0] = parameter.beep;
+  param[1] = parameter.iqomah_subuh;
+  param[2] = parameter.iqomah_duhur;
+  param[3] = parameter.iqomah_ashar;
+  param[4] = parameter.iqomah_maghrib;
+  param[5] = parameter.iqomah_isya;
+  param[6] = parameter.iqomah_jumat;
+  param[7] = parameter.lama_sholat_subuh;
+  param[8] = parameter.timeOn;
+  param[9] = parameter.timeOff;
+  param[10] = parameter.kota;
+
+  for (unsigned char i = 0; i < 11; i++)
+  {
+    if (i > 9)
+    {
+      myTombol.setMax(316);
+      myTombol.setMin(0);
+      myTombol.setValue(param[i]);
+      mySegmen.displaySetParameter();
+      mySegmen.displayParameter(mySegmen.KALENDER_ALARMBEEP + i);
+      while (myTombol.getPos() == (100 + i))
+      {
+        mySegmen.loop();
+        tampil_text(text_run);
+        myTombol.loop();
+        mySegmen.setTime(param[i] / 100, param[i] % 100);
+        if (event300ms.getEvent())
+        {
+          mySegmen.displayTogleOff();
+        }
+        param[i] = myTombol.getValue();
+      }
+    }
+    if (i < 8)
+    {
+      myTombol.setMax(99);
+      myTombol.setMin(0);
+      myTombol.setValue(param[i]);
+      mySegmen.displaySetMenit();
+      mySegmen.displayParameter(mySegmen.KALENDER_ALARMBEEP + i);
+      while (myTombol.getPos() == (100 + i))
+      {
+        mySegmen.loop();
+        tampil_text(text_run);
+        myTombol.loop();
+        mySegmen.setTime(jam, param[i]);
+        if (event300ms.getEvent())
+        {
+          mySegmen.displayTogleOff();
+        }
+        param[i] = myTombol.getValue();
+      }
+    }
+    else
+    {
+      jam = param[i] / 60;
+      myTombol.setMax(23);
+      myTombol.setMin(0);
+      myTombol.setValue(jam);
+      mySegmen.displaySetParameter();
+      mySegmen.displayParameter(mySegmen.KALENDER_ALARMBEEP + i);
+      while (myTombol.getPos() == (100 + i))
+      {
+        mySegmen.loop();
+        tampil_text(text_run);
+        myTombol.loop();
+        mySegmen.setTime(jam, 0);
+        if (event300ms.getEvent())
+        {
+          mySegmen.displayTogleOff();
+        }
+        jam = myTombol.getValue();
+      }
+      param[i] = jam * 60;
+    }
+  }
+  mySegmen.displayParameter(mySegmen.KALENDER_RESET);
+  //end set param
+  mySegmen.displayOff();
+  parameter.beep = param[0];
+  parameter.iqomah_subuh = param[1];
+  parameter.iqomah_duhur = param[2];
+  parameter.iqomah_ashar = param[3];
+  parameter.iqomah_maghrib = param[4];
+  parameter.iqomah_isya = param[5];
+  parameter.iqomah_jumat = param[6];
+  parameter.lama_sholat_subuh = param[7];
+  parameter.lama_sholat_duhur = param[7];
+  parameter.lama_sholat_ashar = param[7];
+  parameter.lama_sholat_maghrib = param[7];
+  parameter.lama_sholat_isya = param[7];
+  parameter.lama_sholat_jumat = param[7];
+  parameter.timeOn = param[8];
+  parameter.timeOff = param[9];
+  parameter.kota = param[10];
+  parameter.timer_adzan_subuh = 4;
+  parameter.timer_adzan_duhur = 4;
+  parameter.timer_adzan_ashar = 4;
+  parameter.timer_adzan_maghrib = 4;
+  parameter.timer_adzan_jumat = 4;
+  parameter.timer_adzan_isya = 4;
+
+  parameter.jadwal_fix_subuh = 0;
+  parameter.jadwal_fix_duhur = 0;
+  parameter.jadwal_fix_ashar = 0;
+  parameter.jadwal_fix_maghrib = 0;
+  parameter.jadwal_fix_isya = 0;
+  parameter.tambah_kurang_subuh = 0;
+  parameter.tambah_kurang_duhur = 0;
+  parameter.tambah_kurang_ashar = 0;
+  parameter.tambah_kurang_maghrib = 0;
+  parameter.tambah_kurang_isya = 0;
+  parameter.tartil_subuh = 0;
+  parameter.tartil_duhur = 0;
+  parameter.tartil_ashar = 0;
+  parameter.tartil_maghrib = 0;
+  parameter.tartil_isya = 0;
+  parameter.tartil_jumat = 0;
+
+  EEPROM.put(0, parameter);
+  second.reset();
+  while (myTombol.getPos() == 111)
+  {
+    tampil_text(text_run);
+    myBuzer.loop();
+    mySegmen.loop();
+    if (second.getEvent())
+    {
+      break;
+    }
+  }
+  mySegmen.displayNormal();
+  myTombol.resetMenu();
+  myBuzer.onRepeat(3, 100);
+}
 void setJam()
 {
   unsigned char jam = myRtc.getJam();
@@ -176,7 +320,6 @@ void setJam()
   unsigned char bulan = myRtc.getBulan();
   int tahun = myRtc.getTahun();
   mySegmen.setTanggal(tanggal, bulan, tahun);
-
   // set jam
   myTombol.setMax(23);
   myTombol.setMin(0);
@@ -188,7 +331,6 @@ void setJam()
     tampil_text(text_run);
     myTombol.loop();
     mySegmen.setTime(jam, menit);
-
     if (event300ms.getEvent())
     {
       mySegmen.displayTogleOff();
@@ -320,6 +462,7 @@ void alarm(void)
   }
   // Masuk waktu sholat
   jadwal.setJam(myRtc.getJam(), myRtc.getMenit());
+  jadwal.setHari(myRtc.getHari());
   unsigned char alaram = jadwal.getAlarm();
   if (alaram != alamat.ALARM_OFF)
   {
@@ -329,7 +472,7 @@ void alarm(void)
 
 void alarm_on()
 { // time out adzan
-  uint8_t beep_alarm = 3;
+  uint8_t beep_alarm = parameter.beep;
   int time_adzan;
   int _alamat_text;
   int count_iqomah;
@@ -346,8 +489,8 @@ void alarm_on()
     break;
   case alamat.ALARM_SUBUH:
     time_adzan = parameter.timer_adzan_subuh * 60;
-    count_iqomah = 60 * parameter.iqomah_subuh;
-    stanby_sholat = parameter.lama_sholat_subuh;
+    count_iqomah = parameter.iqomah_subuh * 60;
+    stanby_sholat = parameter.lama_sholat_subuh * 60;
     display_eprom(text_iq_subuh);
     _alamat_text = text_iq_subuh;
     mySegmen.displaySubuh();
@@ -362,8 +505,8 @@ void alarm_on()
 
   case alamat.ALARM_DZUHUR:
     time_adzan = parameter.timer_adzan_duhur * 60;
-    count_iqomah = 60 * parameter.iqomah_duhur;
-    stanby_sholat = parameter.lama_sholat_duhur;
+    count_iqomah = parameter.iqomah_duhur * 60;
+    stanby_sholat = parameter.lama_sholat_duhur * 60;
     display_eprom(text_iq_duhur);
     _alamat_text = text_iq_duhur;
     mySegmen.displayDzuhur();
@@ -371,8 +514,8 @@ void alarm_on()
     break;
   case alamat.ALARM_ASHAR:
     time_adzan = parameter.timer_adzan_ashar * 60;
-    count_iqomah = 60 * parameter.iqomah_ashar;
-    stanby_sholat = parameter.lama_sholat_ashar;
+    count_iqomah = parameter.iqomah_ashar * 60;
+    stanby_sholat = parameter.lama_sholat_ashar * 60;
     display_eprom(text_iq_ashar);
     _alamat_text = text_iq_ashar;
     mySegmen.displayAshar();
@@ -380,8 +523,8 @@ void alarm_on()
     break;
   case alamat.ALARM_MAGHRIB:
     time_adzan = parameter.timer_adzan_maghrib * 60;
-    count_iqomah = 60 * parameter.iqomah_maghrib;
-    stanby_sholat = parameter.lama_sholat_maghrib;
+    count_iqomah = parameter.iqomah_maghrib * 60;
+    stanby_sholat = parameter.lama_sholat_maghrib * 60;
     display_eprom(text_iq_maghrib);
     _alamat_text = text_iq_maghrib;
     mySegmen.displayMaghrib();
@@ -389,11 +532,20 @@ void alarm_on()
     break;
   case alamat.ALARM_ISYA:
     time_adzan = parameter.timer_adzan_isya * 60;
-    count_iqomah = 60 * parameter.iqomah_isya;
-    stanby_sholat = parameter.lama_sholat_isya;
+    count_iqomah = parameter.iqomah_isya * 60;
+    stanby_sholat = parameter.lama_sholat_isya * 60;
     display_eprom(text_iq_isya);
     _alamat_text = text_iq_isya;
     mySegmen.displayIsya();
+    myDFPlayer.playFolder(1, 5); // play adzan
+    break;
+  case alamat.ALARM_JUMAT:
+    time_adzan = parameter.timer_adzan_jumat * 60;
+    count_iqomah = parameter.iqomah_jumat * 60;
+    stanby_sholat = parameter.lama_sholat_jumat * 60;
+    display_eprom(text_iq_jumat);
+    _alamat_text = text_iq_jumat;
+    mySegmen.displayJumat();
     myDFPlayer.playFolder(1, 5); // play adzan
     break;
   default:
@@ -410,7 +562,6 @@ void alarm_on()
   //   _alamat_text = text_iq_jumat;
   //   mySegmen.displayJumat();
   // }
-  time_adzan = 1 * 60;
   myBuzer.onRepeat(beep_alarm, 500);
   while (time_adzan)
   {
@@ -446,7 +597,6 @@ void alarm_on()
 
   if (count_iqomah > 0)
   {
-    count_iqomah = 30;
     while (count_iqomah >= 0)
     {
       myBuzer.loop();
@@ -475,7 +625,6 @@ void alarm_on()
     myBuzer.setOff();
   }
   mySegmen.displayOff();
-  stanby_sholat = stanby_sholat * 60;
   dmd.clearScreen(true);
   while (stanby_sholat > 0)
   {
@@ -581,32 +730,32 @@ void serialEvent1()
     input_serial = Serial1.readString();
     //    Serial.println(input_serial);
   }
-  if (input_serial[0] == 'R')
-  {
-    if (input_serial[1] == 'E')
-    {
-      if (input_serial[2] == 'S')
-      {
-        if (input_serial[3] == 'E')
-        {
-          if (input_serial[4] == 'T')
-          {
-            reset();
-            int loct = (input_serial[6] - '0') * 100;
-            loct += (input_serial[7] - '0') * 10;
-            loct += input_serial[8] - '0';
-            if (loct < 317)
-            {
-              parameter.kota = loct;
-              //          Serial.println(loct);
-              EEPROM.put(0, parameter);
-            }
-            command = command_end;
-          }
-        }
-      }
-    }
-  }
+  // if (input_serial[0] == 'R')
+  // {
+  //   if (input_serial[1] == 'E')
+  //   {
+  //     if (input_serial[2] == 'S')
+  //     {
+  //       if (input_serial[3] == 'E')
+  //       {
+  //         if (input_serial[4] == 'T')
+  //         {
+  //           reset();
+  //           int loct = (input_serial[6] - '0') * 100;
+  //           loct += (input_serial[7] - '0') * 10;
+  //           loct += input_serial[8] - '0';
+  //           if (loct < 317)
+  //           {
+  //             parameter.kota = loct;
+  //             //          Serial.println(loct);
+  //             EEPROM.put(0, parameter);
+  //           }
+  //           command = command_end;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
   if (input_serial == "1234")
   {
     Serial1.print("OK\n");
@@ -1017,266 +1166,3 @@ void reset()
     EEPROM.write(text_iq_jumat + n, chr);
   }
 }
-void tunggu_menu()
-{
-  myBuzer.onOnce(100);
-  while (digitalRead(tombol_menu) == LOW)
-  {
-    myBuzer.loop();
-    delay(150);
-  }
-}
-void tunggu_up()
-{
-  int skip = 500;
-
-  myBuzer.onOnce(100);
-  while (digitalRead(tombol_up) == LOW)
-  {
-    myBuzer.loop();
-    mySegmen.loop();
-    tampil_text(text_run);
-    if (--skip == 0)
-      break;
-  }
-}
-void tunggu_down()
-{
-  int skip = 500;
-  myBuzer.onOnce(100);
-  while (digitalRead(tombol_down) == LOW)
-  {
-    myBuzer.loop();
-    mySegmen.loop();
-    tampil_text(text_run);
-    if (--skip == 0)
-      break;
-  }
-}
-// seting(data,bawah,atas)
-// void set_waktu(byte a, int b, int c)
-// {
-//   for (byte l = 12; l < 36; l++)
-//     segmen[l] = (data_jadwal[10]);
-//   while (digitalRead(tombol_menu) == 1)
-//   {
-//     if (digitalRead(tombol_up) == 0)
-//     {
-//       data[a]++;
-//       if (data[a] > c)
-//         data[a] = b;
-//       refres(jam);
-//       refres(tanggal);
-//       tunggu_up();
-//     }
-//     if (digitalRead(tombol_down) == 0)
-//     {
-//       data[a]--;
-//       if (data[a] < b || data[a] == 0xff)
-//         data[a] = c;
-//       refres(jam);
-//       refres(tanggal);
-//       tunggu_down();
-//     }
-//     refres(jam);
-//     refres(tanggal);
-//     if ((millis() % 300) < 150)
-//     {
-//       switch (a)
-//       {
-//       case menit:
-//         segmen[2] = data_jam[10];
-//         segmen[3] = data_jam[10];
-//         break;
-//       case jam:
-//         segmen[0] = data_jam[10];
-//         segmen[1] = data_jam[10];
-//         break;
-//       case tanggal:
-//         segmen[4] = data_kalender[10];
-//         segmen[5] = data_kalender[10];
-//         break;
-//       case bulan:
-//         segmen[7] = data_kalender[10];
-//         segmen[8] = data_kalender[10];
-//         break;
-//       case tahun:
-//         segmen[10] = data_kalender[10];
-//         segmen[11] = data_kalender[10];
-//       }
-//     }
-//     mySegmen.loop();
-//     tampil_text(text_run);
-//   }
-//   tunggu_menu();
-// }
-// // seting (nama,val,bawah,atas)
-// int set_parameter(byte _nama_set, int _nilai, int _bawah, int _atas)
-// {
-//   for (byte l = 12; l < 36; l++)
-//     segmen[l] = (data_jadwal[10]);
-//   tampil_hari(_nama_set);
-//   while (digitalRead(tombol_menu) == 1)
-//   {
-//     refres(jam);
-//     if (_nilai > 99)
-//     {
-//       data[menit] = _nilai % 100;
-//       data[jam] = _nilai / 100;
-//     }
-//     else
-//     {
-//       segmen[0] = (data_jam[10]);
-//       segmen[1] = (data_jam[10]);
-//       if (_nilai < 0)
-//         segmen[1] = 255 - 128;
-//       data[menit] = abs(_nilai);
-//     }
-//     if (digitalRead(tombol_up) == 0)
-//     {
-//       _nilai++;
-//       if (_nilai > _atas)
-//         _nilai = _bawah;
-//       refres(jam);
-//       if (_nilai > 99)
-//       {
-//         data[menit] = _nilai % 100;
-//         data[jam] = _nilai / 100;
-//       }
-//       else
-//       {
-//         segmen[0] = (data_jam[10]);
-//         segmen[1] = (data_jam[10]);
-//         if (_nilai < 0)
-//           segmen[1] = 255 - 128;
-//         data[menit] = abs(_nilai);
-//       }
-//       tunggu_up();
-//     }
-//     if (digitalRead(tombol_down) == 0)
-//     {
-//       _nilai--;
-//       if (_nilai < _bawah)
-//         _nilai = _atas;
-//       refres(jam);
-//       if (_nilai > 99)
-//       {
-//         data[menit] = _nilai % 100;
-//         data[jam] = _nilai / 100;
-//       }
-//       else
-//       {
-//         segmen[0] = (data_jam[10]);
-//         segmen[1] = (data_jam[10]);
-//         if (_nilai < 0)
-//           segmen[1] = 255 - 128;
-//         data[menit] = abs(_nilai);
-//       }
-//       tunggu_down();
-//     }
-//     if ((millis() % 300) < 150)
-//     {
-//       segmen[0] = data_jam[10];
-//       segmen[1] = data_jam[10];
-//       segmen[2] = data_jam[10];
-//       segmen[3] = data_jam[10];
-//     }
-//     mySegmen.loop();
-//     tampil_text(text_run);
-//   }
-//   tunggu_menu();
-//   return _nilai;
-// }
-// void tombol()
-// {
-//   unsigned char a;
-//   if (digitalRead(tombol_menu) == LOW)
-//   {
-//     tunggu_menu();
-//     set_waktu(2, 0, 23);      // jam
-//     set_waktu(1, 0, 59);      // menit
-//     set_waktu(4, 1, 31);      // tanggal
-//     set_waktu(5, 1, 12);      // bulan
-//     set_waktu(6, 2000, 2099); // tahun
-//     tulis_rtc();
-//     baca_jadwal(parameter.kota);
-//     refres(all);
-//   }
-//   if (digitalRead(tombol_up) == LOW)
-//   {
-//     tunggu_up();
-//     parameter.timer_adzan_subuh = 3;
-//     parameter.timer_adzan_subuh = 3;
-//     parameter.timer_adzan_duhur = 3;
-//     parameter.timer_adzan_ashar = 3;
-//     parameter.timer_adzan_maghrib = 3;
-//     parameter.timer_adzan_isya = 3;
-//     parameter.timer_adzan_jumat = 3;
-//     parameter.iqomah_subuh = set_parameter(subuh, parameter.iqomah_subuh, 0, 99);
-//     parameter.iqomah_duhur = set_parameter(duhur, parameter.iqomah_duhur, 0, 99);
-//     parameter.iqomah_ashar = set_parameter(ashar, parameter.iqomah_ashar, 0, 99);
-//     parameter.iqomah_maghrib = set_parameter(magrib, parameter.iqomah_maghrib, 0, 99);
-//     parameter.iqomah_isya = set_parameter(isya, parameter.iqomah_isya, 0, 99);
-//     parameter.iqomah_jumat = set_parameter(kutbah, parameter.iqomah_jumat, 0, 99);
-//     parameter.lama_sholat_subuh = set_parameter(stanbay, parameter.lama_sholat_subuh, 0, 99);
-//     parameter.lama_sholat_duhur = parameter.lama_sholat_subuh;
-//     parameter.lama_sholat_ashar = parameter.lama_sholat_subuh;
-//     parameter.lama_sholat_maghrib = parameter.lama_sholat_subuh;
-//     parameter.lama_sholat_isya = parameter.lama_sholat_subuh;
-//     parameter.lama_sholat_jumat = parameter.lama_sholat_subuh;
-//     parameter.beep = set_parameter(alarm_beep, parameter.beep, 0, 99);
-//     parameter.jam_kecerahan_4 = 60 * set_parameter(off, parameter.jam_kecerahan_4 / 60, 0, 23);
-//     parameter.jam_kecerahan_1 = 60 * set_parameter(on, parameter.jam_kecerahan_1 / 60, 0, 23);
-//     parameter.jam_kecerahan_2 = parameter.jam_kecerahan_1;
-//     parameter.jam_kecerahan_3 = parameter.jam_kecerahan_1;
-//     parameter.kecerahan_1 = 7;
-//     parameter.kecerahan_2 = 7;
-//     parameter.kecerahan_3 = 7;
-//     parameter.kecerahan_4 = 0;
-//     parameter.jadwal_fix_subuh = 0;
-//     parameter.jadwal_fix_duhur = 0;
-//     parameter.jadwal_fix_ashar = 0;
-//     parameter.jadwal_fix_maghrib = 0;
-//     parameter.jadwal_fix_isya = 0;
-//     parameter.jadwal_fix_subuh = 0;
-//     parameter.jadwal_fix_duhur = 0;
-//     parameter.jadwal_fix_ashar = 0;
-//     parameter.jadwal_fix_maghrib = 0;
-//     parameter.jadwal_fix_isya = 0;
-//     EEPROM.put(0, parameter);
-//     baca_jadwal(parameter.kota);
-//     refres(all);
-//   }
-//   if (digitalRead(tombol_down) == LOW)
-//   {
-//     a = 0;
-//     while (digitalRead(tombol_down) == 0)
-//     {
-//       delay(100);
-//       a++;
-//       if (a == 50)
-//       {
-//         tunggu_down();
-//         while (digitalRead(tombol_down) == LOW)
-//           ;
-//         delay(500);
-//         parameter.kota = set_parameter(set_kota, parameter.kota, 0, 316);
-//         parameter.tambah_kurang_subuh = set_parameter(subuh, parameter.tambah_kurang_subuh, -10, 10);
-//         parameter.tambah_kurang_duhur = set_parameter(duhur, parameter.tambah_kurang_duhur, -10, 10);      // parameter.tambah_kurang_subuh;
-//         parameter.tambah_kurang_ashar = set_parameter(ashar, parameter.tambah_kurang_ashar, -10, 10);      // parameter.tambah_kurang_subuh;
-//         parameter.tambah_kurang_maghrib = set_parameter(magrib, parameter.tambah_kurang_maghrib, -10, 10); // parameter.tambah_kurang_subuh;
-//         parameter.tambah_kurang_isya = set_parameter(isya, parameter.tambah_kurang_isya, -10, 10);         // parameter.tambah_kurang_subuh;
-//         parameter.tartil_subuh = set_parameter(tlwh_1, parameter.tartil_subuh, 0, 99);
-//         parameter.tartil_duhur = set_parameter(tlwh_2, parameter.tartil_duhur, 0, 99);
-//         parameter.tartil_ashar = set_parameter(tlwh_3, parameter.tartil_ashar, 0, 99);
-//         parameter.tartil_maghrib = set_parameter(tlwh_4, parameter.tartil_maghrib, 0, 99);
-//         parameter.tartil_isya = set_parameter(tlwh_5, parameter.tartil_isya, 0, 99);
-//         parameter.tartil_jumat = set_parameter(tlwh_6, parameter.tartil_jumat, 0, 99);
-//         EEPROM.put(0, parameter);
-//         baca_jadwal(parameter.kota);
-//         refres(all);
-//       }
-//     }
-//   }
-// }
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

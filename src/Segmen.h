@@ -123,12 +123,28 @@ private:
     modeSetTanggal,
     modeSetBulan,
     modeSetTahun,
+    modeSetParameter,
   };
 
   void shiftOut(uint8_t value);
   void displaySholat(unsigned char sholat);
 
 public:
+  enum tampilParameter
+  {
+    KALENDER_ALARMBEEP,
+    KALENDER_IQOMAH_SUBUH,
+    KALENDER_IQOMAH_DZUHUR,
+    KALENDER_IQOMAH_ASHAR,
+    KALENDER_IQOMAH_MAGRIB,
+    KALENDER_IQOMAH_ISYA,
+    KALENDER_IQOMAH_JUMAT,
+    KALENDER_STANBAY,
+    KALENDER_ON,
+    KALENDER_OFF,
+    KALENDER_SETKOTA,
+    KALENDER_RESET,
+  };
   enum tampilKalender
   {
     kalenderSenin = 1,
@@ -137,19 +153,9 @@ public:
     kalenderKamis,
     kalenderJumat,
     kalenderSabtu,
+
     kalenderAhad,
-    kalenderAlarmBeep,
-    kalenderOn,
-    kalenderOff,
-    kalenderImsya,
-    kalenderSubuh,
-    kalenderDzuhur,
-    kalenderAshar,
-    kalenderMagrib,
-    kalenderIsya,
-    kalenderStanbay,
-    kalenderIqomah,
-    kalenderSetKota,
+
     kalenderJadwal,
     kalenderTartil1,
     kalenderTartil2,
@@ -172,6 +178,7 @@ public:
   void setMaghrib(unsigned char hour, unsigned char min);
   void setIsya(unsigned char hour, unsigned char min);
   void displayHari(unsigned char day);
+  void displayParameter(unsigned char parameter);
   void displayNormal();
   void displayTogleOff();
   void displayImsya();
@@ -189,7 +196,7 @@ public:
   void displaySetTanggal();
   void displaySetBulan();
   void displaySetTahun();
-
+  void displaySetParameter();
   void displayOff();
 };
 #endif
