@@ -18,14 +18,7 @@ public:
                 ALARM_ISYA,
                 ALARM_JUMAT,
 
-#if defined(rumus)
                 IQOMAH_SUBUH = 20,
-#endif // rumus
-#if !defined(rumus)
-#define rumus
-                IQOMAH_SUBUH = 7500,
-#endif // rumus
-
                 IQOMAH_DZUHUR,
                 IQOMAH_ASHAR,
                 IQOMAH_MAGHRIB,
@@ -51,7 +44,6 @@ public:
                 OFFSITE_ASHAR,
                 OFFSITE_MAGHRIB,
                 OFFSITE_ISYA,
-
         };
 };
 

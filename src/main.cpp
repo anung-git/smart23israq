@@ -18,6 +18,8 @@
 #include "Alamat.h"
 
 #include "Tombol.h"
+#include "EpromStruct.h"
+#include "Bluetooth.h"
 
 void reset();
 void baca_jadwal(int daerah);
@@ -54,9 +56,10 @@ DMD dmd(DISPLAYS_ACROSS, DISPLAYS_DOWN);
 Rtc myRtc = Rtc();
 Segmen mySegmen = Segmen();
 DFRobotDFPlayerMini myDFPlayer;
-MyObject parameter; // Variable to store custom object read from EEPROM.
+EpromObject parameter; // Variable to store custom object read from EEPROM.
 Jadwal jadwal = Jadwal();
 Alamat alamat = Alamat();
+Bluetooth myBluetooth = Bluetooth();
 //==================================
 // Var Global
 volatile int alamat_eprom = 0;
@@ -82,6 +85,14 @@ void setup()
     delay(250);
     myBuzer.setOff();
     delay(250);
+    myTombol.loop();
+    if (myTombol.getPos() == 200)
+    {
+      parameter.kota = 0;
+      reset();
+      myTombol.resetMenu();
+      break;
+    }
   }
   Serial1.begin(bluetooth);
   Serial.begin(9600);
@@ -91,16 +102,6 @@ void setup()
   myDFPlayer.setTimeOut(500);
   dmd.selectFont(myFont);
   dmd.setBrightness(7);
-  // if (digitalRead(tombol_up) == LOW)
-  // {
-  //   if (digitalRead(tombol_down) == LOW)
-  //   {
-  //     if (digitalRead(tombol_menu) == LOW)
-  //     {
-  //       reset();
-  //     }
-  //   }
-  // }
 
   EEPROM.get(0, parameter);
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
@@ -110,6 +111,11 @@ void setup()
   power.setTimeOn(parameter.timeOn);
   power.setTimeOff(parameter.timeOff);
   myTombol.setBuzer(&myBuzer);
+
+  myBluetooth.setEprom(&parameter);
+  myBluetooth.setBuzer(&myBuzer);
+  myBluetooth.setRtc(&myRtc);
+  myBluetooth.setPower(&power);
 }
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -140,6 +146,25 @@ void loop()
       EEPROM.get(0, parameter);
       temp_hri = hari;
     }
+    if (myBluetooth.available())
+    {
+      switch (myBluetooth.getStatus())
+      {
+      case 1:
+        baca_jadwal(parameter.kota);
+        break;
+      case 2:
+        alamat_eprom = 0;
+        display_eprom(text_run);
+        break;
+      case 3:
+        reset();
+        baca_jadwal(parameter.kota);
+        alamat_eprom = 0;
+        display_eprom(text_run);
+        break;
+      }
+    }
   }
   if ((myRtc.getDetik() % 10) < 5)
   {
@@ -159,13 +184,16 @@ void loop()
   }
   myTombol.loop();
   mySegmen.loop();
-  if (myTombol.getPos() == 1)
+  switch (myTombol.getPos())
   {
+  case 1:
     setJam();
-  }
-  if (myTombol.getPos() == 100)
-  {
+    break;
+  case 100:
     setParameter();
+    break;
+  default:
+    break;
   }
 }
 
@@ -254,7 +282,7 @@ void setParameter()
     }
   }
   mySegmen.displayParameter(mySegmen.KALENDER_RESET);
-  //end set param
+  // end set param
   mySegmen.displayOff();
   parameter.beep = param[0];
   parameter.iqomah_subuh = param[1];
@@ -552,16 +580,6 @@ void alarm_on()
     break;
   }
 
-  // if (sholat == waktu_jumat)
-  // {
-  //   beep_alarm = 0; // parameter.beep;
-  //   time_adzan = parameter.timer_adzan_jumat * 60;
-  //   count_iqomah = 60 * parameter.iqomah_jumat;
-  //   stanby_sholat = parameter.lama_sholat_jumat;
-  //   display_eprom(text_iq_jumat);
-  //   _alamat_text = text_iq_jumat;
-  //   mySegmen.displayJumat();
-  // }
   myBuzer.onRepeat(beep_alarm, 500);
   while (time_adzan)
   {
@@ -588,10 +606,10 @@ void alarm_on()
   {
     return;
   }
-  if (jadwal.getAlarm() == alamat.ALARM_JUMAT)
-  {
-    return;
-  }
+  // if (jadwal.getAlarm() == alamat.ALARM_JUMAT)
+  // {
+  //   return;
+  // }
   mySegmen.displayIqomah(); // tampil_hari(iqomah);
   myBuzer.onOnce(250);
 
@@ -693,10 +711,6 @@ void baca_jadwal(int daerah)
 }
 void tampil_text(int _alamat_text)
 {
-  if (serialEventRun)
-  {
-    serialEventRun();
-  }
   if (textSpeed.getEvent())
   {
     if (dmd.stepMarquee(-1, 0))
@@ -706,335 +720,11 @@ void tampil_text(int _alamat_text)
   }
 }
 //
-const PROGMEM char bloothtCommand[] = {
-    'J', // set jam ->2
-    'S', // set stop mp3 ->3
-    'I', // set iqomah ->4
-    'T', // set tarhim ->5
-    'B', // set brightnes ->6
-    'F', // set offsite ->7
-    'X', // set fix ->8
-    'K', // set kota ->9
-    'A', // set adzan
-    'W', // play mp3 ->11
-         // 'Y',//Power ->12
-         // 'Z',//Buzer -> 13
 
-};
 //==================================================================================
 void serialEvent1()
 {
-  String input_serial;
-  if (Serial1.available())
-  {
-    input_serial = Serial1.readString();
-    //    Serial.println(input_serial);
-  }
-  // if (input_serial[0] == 'R')
-  // {
-  //   if (input_serial[1] == 'E')
-  //   {
-  //     if (input_serial[2] == 'S')
-  //     {
-  //       if (input_serial[3] == 'E')
-  //       {
-  //         if (input_serial[4] == 'T')
-  //         {
-  //           reset();
-  //           int loct = (input_serial[6] - '0') * 100;
-  //           loct += (input_serial[7] - '0') * 10;
-  //           loct += input_serial[8] - '0';
-  //           if (loct < 317)
-  //           {
-  //             parameter.kota = loct;
-  //             //          Serial.println(loct);
-  //             EEPROM.put(0, parameter);
-  //           }
-  //           command = command_end;
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-  if (input_serial == "1234")
-  {
-    Serial1.print("OK\n");
-    command = command_start;
-  }
-  else
-  {
-    if (command == command_start)
-    {
-      if (input_serial[0] == '%')
-      {
-        for (uint8_t cmd = 0; cmd < 10; cmd++)
-        {
-          char lookupCmd = pgm_read_byte_near(bloothtCommand + cmd);
-          if (lookupCmd == input_serial[1])
-          {
-            Serial1.print("OK");
-            Serial1.print(lookupCmd);
-            Serial1.print("\n");
-            command = cmd + 2;
-
-            break;
-          }
-        }
-      }
-    }
-    //===========================================================
-    else if (command == play_mp3)
-    {
-      command = command_end;
-      int _track = ((input_serial[1] - '0') * 100) + ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-      // 1234 %W Q001
-      // 1234 %W Q001
-      // 1234 %W Q001
-      // 1234 %W Q004
-      // sholawat
-      // 1234 %W W003
-      // 1234 %W W010
-      // stop
-      // 1234 %W STOP
-      // myDFPlayer.play(1);  //Play the first mp3
-      // myDFPlayer.stop();
-
-      if (input_serial[0] == 'Q')
-      {
-        myDFPlayer.play(_track); // play alquran
-      }
-      if (input_serial[0] == 'W')
-      { // play sholawat
-        myDFPlayer.play(_track + 114);
-      }
-      if (input_serial[0] == 'S')
-      {
-        myDFPlayer.stop(); // STOP
-      }
-      Serial1.print("SetPlay\n");
-    }
-    else if (command == set_jam)
-    {
-      command = command_end;
-      // 290417040319 // DTK_MNT_JAM_TGL_BLN_TH
-      unsigned char jam = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-      unsigned char menit = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-      unsigned char detik = ((input_serial[0] - '0') * 10) + (input_serial[1] - '0');
-      unsigned char tanggal = ((input_serial[6] - '0') * 10) + (input_serial[7] - '0');
-      unsigned char bulan = ((input_serial[8] - '0') * 10) + (input_serial[9] - '0');
-      int tahun = 2000 + ((input_serial[10] - '0') * 10) + (input_serial[11] - '0');
-      // tulis_rtc();
-      myRtc.setJam(jam, menit, detik);
-      myRtc.setTanggal(tanggal, bulan, tahun);
-      Serial1.print("SetTime\n");
-    }
-    else if (command == set_text)
-    { // ok
-
-      command = command_end;
-      // 1234 %S tes karakter
-      // writeString(text_run,input_serial);
-      int _size = input_serial.length();
-      int i;
-      for (i = 0; i < _size; i++)
-        EEPROM.write(text_run + i, input_serial[i]);
-      EEPROM.write(text_run + _size, '\0'); // Add termination null character for String Data
-      Serial1.print("SetText\n");
-      alamat_eprom = 0;
-      display_eprom(text_run);
-    }
-    else if (command == set_iqomah)
-    {
-      // 1234 %I N 0 1010 Iqomah Subuh // n DAN y ADALAH ENABLE IQOMAH
-      // 1234 %I N 1 1010 Iqomah Dzuhur... //IQOMAH_SHOLAT
-      // 1234 %I N 2 1010 Iqomah Ashar...
-      // 1234 %I N 3 1010 Iqomah Maghrib...
-      // 1234 %I N 4 1010 Iqomah Isya...
-      // 1234 %I N 5 0510 Iqomah jumat
-      // 1234 %I Y 0 1010 Iqomah Subuh
-      command = command_end;
-      int _text_iqomah;
-      if (input_serial[1] == '0')
-      {
-        parameter.iqomah_subuh = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-        parameter.lama_sholat_subuh = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-        // writeString(text_iq_subuh,input_serial.substring(6));
-        _text_iqomah = text_iq_subuh;
-      }
-      if (input_serial[1] == '1')
-      {
-        parameter.iqomah_duhur = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-        parameter.lama_sholat_duhur = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-        // writeString(text_iq_duhur,input_serial.substring(6));
-        _text_iqomah = text_iq_duhur;
-      }
-      if (input_serial[1] == '2')
-      {
-        parameter.iqomah_ashar = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-        parameter.lama_sholat_ashar = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-        // writeString(text_iq_ashar,input_serial.substring(6));
-        _text_iqomah = text_iq_ashar;
-      }
-      if (input_serial[1] == '3')
-      {
-        parameter.iqomah_maghrib = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-        parameter.lama_sholat_maghrib = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-        // writeString(text_iq_maghrib,input_serial.substring(6));
-        _text_iqomah = text_iq_maghrib;
-      }
-      if (input_serial[1] == '4')
-      {
-        parameter.iqomah_isya = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-        parameter.lama_sholat_isya = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-        // writeString(text_iq_isya,input_serial.substring(6));
-        _text_iqomah = text_iq_isya;
-      }
-      if (input_serial[1] == '5')
-      {
-        parameter.iqomah_jumat = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-        parameter.lama_sholat_jumat = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-        // writeString(text_iq_jumat,input_serial.substring(6));
-        _text_iqomah = text_iq_jumat;
-      }
-      int _size = input_serial.length();
-      int i, u = 0;
-      for (i = 6; i < _size; i++)
-      {
-        EEPROM.write(_text_iqomah + u, input_serial[i]);
-        u++;
-      }
-      EEPROM.write(_text_iqomah + u, '\0');
-      EEPROM.put(0, parameter);
-      Serial1.print("SetIqom\n");
-    }
-    else if (command == set_tarhim)
-    { // OK
-      command = command_end;
-      // 15 15 15 15 15 15 YNNNYY  //Subuh Dzuhur...  jumat YES/NO
-      parameter.tartil_subuh = ((input_serial[0] - '0') * 10) + (input_serial[1] - '0');
-      parameter.tartil_duhur = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-      parameter.tartil_ashar = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-      parameter.tartil_maghrib = ((input_serial[6] - '0') * 10) + (input_serial[7] - '0');
-      parameter.tartil_isya = ((input_serial[8] - '0') * 10) + (input_serial[9] - '0');
-      parameter.tartil_jumat = ((input_serial[10] - '0') * 10) + (input_serial[11] - '0');
-      if (input_serial[12] == 'N')
-        parameter.tartil_subuh = 0;
-      if (input_serial[13] == 'N')
-        parameter.tartil_duhur = 0; // ((_trtl[2]-'0')*10)+(_trtl[3]-'0');
-      if (input_serial[14] == 'N')
-        parameter.tartil_ashar = 0; // ((_trtl[4]-'0')*10)+(_trtl[5]-'0') ;
-      if (input_serial[15] == 'N')
-        parameter.tartil_maghrib = 0; //((_trtl[6]-'0')*10)+(_trtl[7]-'0');
-      if (input_serial[16] == 'N')
-        parameter.tartil_isya = 0; //((_trtl[8]-'0')*10)+(_trtl[9]-'0');
-      if (input_serial[17] == 'N')
-        parameter.tartil_jumat = 0; //((_trtl[10]-'0')*10)+(_trtl[11]-'0');
-      EEPROM.put(0, parameter);
-      Serial1.print("SetTrkm\n");
-    }
-    else if (command == set_brightnes)
-    { // ok
-      command = command_end;
-      // 1234 %B 0300 01 0600 03 1730 01 2100 00
-      // 1234 %B 0300 07 0600 03 1730 01 2100 00
-      parameter.kecerahan_1 = input_serial[5] - '0';
-      parameter.kecerahan_2 = input_serial[11] - '0';
-      parameter.kecerahan_3 = input_serial[17] - '0';
-      parameter.kecerahan_4 = input_serial[23] - '0';
-      parameter.jam_kecerahan_1 = ((((input_serial[0] - '0') * 10) + (input_serial[1] - '0')) * 60) + (((input_serial[2] - '0') * 10) + (input_serial[3] - '0'));
-      parameter.jam_kecerahan_2 = ((((input_serial[6] - '0') * 10) + (input_serial[7] - '0')) * 60) + (((input_serial[8] - '0') * 10) + (input_serial[9] - '0'));
-      parameter.jam_kecerahan_3 = ((((input_serial[12] - '0') * 10) + (input_serial[13] - '0')) * 60) + (((input_serial[14] - '0') * 10) + (input_serial[15] - '0'));
-      parameter.jam_kecerahan_4 = ((((input_serial[18] - '0') * 10) + (input_serial[19] - '0')) * 60) + (((input_serial[20] - '0') * 10) + (input_serial[21] - '0'));
-      EEPROM.put(0, parameter);
-      Serial1.print("SetBrns\n");
-    }
-    else if (command == set_offsite)
-    { // OK
-      command = command_end;
-      // 1234 %F 19 02 01 03 05 //1= TAMBAH & 0=KURANG
-      if (input_serial[0] == '0')
-        parameter.tambah_kurang_subuh = 0 - (input_serial[1] - '0');
-      else
-        parameter.tambah_kurang_subuh = input_serial[1] - '0';
-      if (input_serial[2] == '0')
-        parameter.tambah_kurang_duhur = 0 - (input_serial[3] - '0');
-      else
-        parameter.tambah_kurang_duhur = input_serial[3] - '0';
-      if (input_serial[4] == '0')
-        parameter.tambah_kurang_ashar = 0 - (input_serial[5] - '0');
-      else
-        parameter.tambah_kurang_ashar = input_serial[5] - '0';
-      if (input_serial[6] == '0')
-        parameter.tambah_kurang_maghrib = 0 - (input_serial[7] - '0');
-      else
-        parameter.tambah_kurang_maghrib = input_serial[7] - '0';
-      if (input_serial[8] == '0')
-        parameter.tambah_kurang_isya = 0 - (input_serial[9] - '0');
-      else
-        parameter.tambah_kurang_isya = input_serial[9] - '0';
-      EEPROM.put(0, parameter);
-      Serial1.print("SetOffs\n");
-    }
-    else if (command == set_fix)
-    { // OK
-      command = command_end;
-      // YYNYN 2200 0000 0000 0000 0000
-      // 5 9 13 17 21
-      parameter.jadwal_fix_subuh = 0;
-      parameter.jadwal_fix_duhur = 0;
-      parameter.jadwal_fix_ashar = 0;
-      parameter.jadwal_fix_maghrib = 0;
-      parameter.jadwal_fix_isya = 0;
-      if (input_serial[0] == 'Y')
-        parameter.jadwal_fix_subuh = ((((input_serial[5] - '0') * 10) + (input_serial[6] - '0')) * 60) + (((input_serial[7] - '0') * 10) + (input_serial[8] - '0'));
-      if (input_serial[1] == 'Y')
-        parameter.jadwal_fix_duhur = ((((input_serial[9] - '0') * 10) + (input_serial[10] - '0')) * 60) + (((input_serial[11] - '0') * 10) + (input_serial[12] - '0'));
-      if (input_serial[2] == 'Y')
-        parameter.jadwal_fix_ashar = ((((input_serial[13] - '0') * 10) + (input_serial[14] - '0')) * 60) + (((input_serial[15] - '0') * 10) + (input_serial[16] - '0'));
-      if (input_serial[3] == 'Y')
-        parameter.jadwal_fix_maghrib = ((((input_serial[17] - '0') * 10) + (input_serial[18] - '0')) * 60) + (((input_serial[19] - '0') * 10) + (input_serial[20] - '0'));
-      if (input_serial[4] == 'Y')
-        parameter.jadwal_fix_isya = ((((input_serial[21] - '0') * 10) + (input_serial[22] - '0')) * 60) + (((input_serial[23] - '0') * 10) + (input_serial[24] - '0'));
-      EEPROM.put(0, parameter);
-      Serial1.print("SetFixx\n");
-    }
-    else if (command == set_bt_kota)
-    { // ok
-      // EN 110 39 007 82 01187+00 //LU
-      // ES 110 39 007 82 01187+00 //ls
-      parameter.set_kota_bjr = ((input_serial[2] - '0') * 100) + ((input_serial[3] - '0') * 10) + (input_serial[4] - '0') + ((input_serial[5] - '0') * 0.1) + ((input_serial[6] - '0') * 0.01);
-      if (input_serial[1] == 'N')
-        parameter.set_kota_lnt = ((input_serial[7] - '0') * 100) + ((input_serial[8] - '0') * 10) + (input_serial[9] - '0') + ((input_serial[10] - '0') * 0.1) + ((input_serial[11] - '0') * 0.01);
-      if (input_serial[1] == 'S')
-        parameter.set_kota_lnt = 0 - (((input_serial[7] - '0') * 100) + ((input_serial[8] - '0') * 10) + (input_serial[9] - '0') + ((input_serial[10] - '0') * 0.1) + ((input_serial[11] - '0') * 0.01));
-      parameter.set_kota_gmt = input_serial[16] - '0';
-      parameter.kota = 0;
-      EEPROM.put(0, parameter);
-      Serial1.print("SetKoor\n");
-      command = command_end;
-    }
-    else if (command == set_adzan)
-    { // OK
-      command = command_end;
-      parameter.timer_adzan_subuh = ((input_serial[0] - '0') * 10) + (input_serial[1] - '0');
-      parameter.timer_adzan_duhur = ((input_serial[2] - '0') * 10) + (input_serial[3] - '0');
-      parameter.timer_adzan_ashar = ((input_serial[4] - '0') * 10) + (input_serial[5] - '0');
-      parameter.timer_adzan_maghrib = ((input_serial[6] - '0') * 10) + (input_serial[7] - '0');
-      parameter.timer_adzan_isya = ((input_serial[8] - '0') * 10) + (input_serial[9] - '0');
-      parameter.timer_adzan_jumat = ((input_serial[10] - '0') * 10) + (input_serial[11] - '0');
-      EEPROM.put(0, parameter);
-      Serial1.print("SetAlrm\n");
-    }
-  }
-
-  //===========================================================
-  if (command == command_end)
-  {
-    myBuzer.setOn();
-    baca_jadwal(parameter.kota);
-    myBuzer.setOff();
-    command = 0;
-  }
+  myBluetooth.loop();
 }
 
 void display_eprom(int add)
@@ -1073,7 +763,7 @@ void display_eprom(int add)
 
 void reset()
 {
-  parameter.kota = 0;
+  // parameter.kota = 0;
   parameter.beep = 10;
   parameter.timer_adzan_subuh = 4;
   parameter.timer_adzan_duhur = 4;
@@ -1121,10 +811,10 @@ void reset()
   parameter.set_kota_gmt = 7;
   parameter.set_kota_lnt = -7.80;
   parameter.set_kota_bjr = 110.400;
-  parameter.timeOn = 3;
-  parameter.timeOff = 22;
+  parameter.timeOn = 3 * 60;
+  parameter.timeOff = 22 * 60;
   EEPROM.put(0, parameter);
-
+  myBuzer.setOff();
   for (int t = 0; t < 420; t++)
   {
     char chr = pgm_read_byte_near(runningtext + t);

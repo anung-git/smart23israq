@@ -12,7 +12,7 @@ Segmen::Segmen()
     for (unsigned char i = 0; i < 4; i++)
     {
         Segmen::buffer[i] = dataJam[0];
-        layer[i] = ON;
+        layer[i] = LAYER_JAM_ON;
     }
     for (unsigned char i = 4; i < 14; i++)
     {
@@ -53,7 +53,7 @@ void Segmen::displayParameter(unsigned char parameter)
         ki, kq, k_, kd, ku, kh, ku, kr, k_, k_,
         ki, kq, k_, ka, ks, kh, ka, kr, k_, k_,
         ki, kq, k_, km1, km2, ka, kg, kr, ki, kb,
-        ki, kq, k_, ki, ks, ky, ka, ka, k_, k_,
+        ki, kq, k_, ki, ks, ky, ka, k_, k_, k_,
         ki, kq, k_, kj, ku, km1, km2, ka, kt, k_,
         k_, ks, kt, ka, kn, kb, ky, k_, k_, k_,
         k_, k_, k_, k_, ko, kn, k_, k_, k_, k_,
@@ -477,6 +477,9 @@ void Segmen::loop()
 {
     int tick = millis() % 1000;
     tick < 500 ? sqw = true : sqw = false;
+
+#if defined(AKTIF_LOW)
+    // aktif low 1,8
     if (sqw == true)
     {
         buffer[2] = buffer[2] & 0xf7;
@@ -485,6 +488,16 @@ void Segmen::loop()
     {
         buffer[2] = buffer[2] | 0x08;
     }
+
+#else
+    // aktif high 2,3
+    if (sqw == HIGH)
+        buffer[1] = buffer[1] & 0xf7;
+    else
+        buffer[1] = buffer[1] | 0x08;
+
+#endif //
+
     clear_strobe();
     for (unsigned char i = 41; i < 42; i--)
     {
@@ -494,7 +507,13 @@ void Segmen::loop()
         }
         else
         {
+#if defined(AKTIF_LOW)
+            // aktif low 1,8
             this->shiftOut((buffer[i] | layer[i])); // layer jam
+#else
+            // aktif high 2,3
+            this->shiftOut((buffer[i] & layer[i])); // layer jam
+#endif //
         }
     }
     set_strobe();
