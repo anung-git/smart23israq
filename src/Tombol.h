@@ -30,6 +30,7 @@ public:
     void resetMenu();
     int getValue();
     int getPos();
+    bool getDownLongPress(unsigned long longDuration);
 };
 
 #endif // TOMBOL_H

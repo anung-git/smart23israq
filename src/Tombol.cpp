@@ -122,6 +122,23 @@ void Tombol::loop()
     }
     buzer->loop();
 }
+bool Tombol::getDownLongPress(unsigned long longDuration)
+{
+    unsigned long longPress = millis();
+    while (1)
+    {
+        if (millis() - longPress >= longDuration)
+        {
+            return true;
+        }
+        int down = digitalRead(_pinDown);
+        if (down == HIGH)
+        {
+            return false;
+        }
+        buzer->loop();
+    }
+}
 void Tombol::setBuzer(Buzer *buzer)
 {
     this->buzer = buzer;

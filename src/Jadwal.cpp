@@ -74,9 +74,7 @@ void Jadwal::lookupJadwal(unsigned char tanggal, unsigned char bulan, int tahun)
     get_float_time_parts(times[0], hours, minutes);
     jadwal[2] = hours;
     jadwal[3] = minutes;
-    calc = (jadwal[2] * 60) + jadwal[3] - 8; // imsyak = subuh - 10 menit (+2 toleransi)
-    jadwal[0] = calc / 60;
-    jadwal[1] = calc % 60;
+
     get_float_time_parts(times[1], hours, minutes);
     jadwal[12] = hours;
     jadwal[13] = minutes;
@@ -102,6 +100,9 @@ void Jadwal::lookupJadwal(unsigned char tanggal, unsigned char bulan, int tahun)
     jadwal[2] = calc / 60;
     jadwal[3] = calc % 60;
 
+    calc = (jadwal[2] * 60) + jadwal[3] - 10; // imsyak = subuh - 10 menit (+2 toleransi)
+    jadwal[0] = calc / 60;
+    jadwal[1] = calc % 60;
     // dzuhur
     calc = (jadwal[4] * 60) + jadwal[5] + 2 + offsite[1];
     if (_fix[1] > 0)

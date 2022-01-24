@@ -1,6 +1,5 @@
 
 #include <Arduino.h>
-#include "var.h"
 
 const PROGMEM char textsholat_sb[] = {
     'W', 'A', 'K', 'T', 'U', ' ', 'S', 'H', 'O', 'L', 'A', 'T', ' ', 'S', 'U', 'B', 'U', 'H', '\0', // 19

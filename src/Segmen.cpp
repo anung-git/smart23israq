@@ -34,6 +34,11 @@ unsigned char Segmen::sisaBagiSepuluh(unsigned char nilai)
 {
     return (nilai % 10);
 }
+void Segmen::setNegative()
+{
+    Segmen::buffer[0] = ~Segmen::dataJam[0];
+    Segmen::buffer[1] = ~Segmen::dataJam[0];
+}
 void Segmen::setTime(unsigned char hour, unsigned char min)
 {
     Segmen::buffer[0] = (Segmen::dataJam[bagiSepuluh(hour)]);
@@ -495,7 +500,6 @@ void Segmen::loop()
         buffer[1] = buffer[1] & 0xf7;
     else
         buffer[1] = buffer[1] | 0x08;
-
 #endif //
 
     clear_strobe();

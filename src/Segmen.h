@@ -17,30 +17,6 @@
 
 #endif //
 
-// #define ka 123
-// #define kb 124
-// #define kd 121
-// #define ke 111
-// #define kf 78
-// #define kg 63
-// #define kh 92
-// #define ki 17
-// #define kj 113
-// #define kk 94
-// #define kl 100
-// #define km1 71
-// #define km2 23
-// #define kn 87
-// #define ko 119
-// #define kp 79
-// #define kq 31
-// #define kr 70
-// #define ks 62
-// #define kt 108
-// #define ku 117
-// #define ky 61
-// #define k_ 0
-
 #define ka 65
 #define kb 49
 #define kd 97
@@ -184,6 +160,7 @@ public:
   };
   Segmen();
   void loop();
+  void setNegative();
   void setSqw(bool value);
   void setTime(unsigned char hour, unsigned char min);
   void setTanggal(unsigned char date, unsigned char mount, int year);
