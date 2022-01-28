@@ -1,7 +1,7 @@
 #ifndef Segmen_H_
 #define Segmen_H_
 
-// #define AKTIF_LOW // 1,8 inchi
+#define AKTIF_LOW // 1,8 inchi
 
 #define OFF 0xFF
 #define ON 0x00

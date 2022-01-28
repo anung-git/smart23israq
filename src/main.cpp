@@ -112,8 +112,10 @@ void setup()
 
   EEPROM.get(0, parameter);
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
-  myDFPlayer.volume(25); // Set volume . From 0 to 30
+  myDFPlayer.volume(26); // Set volume . From 0 to 30
   myDFPlayer.play(1);    // Play the first mp3
+  // myDFPlayer.playFolder(2, 1);
+
   display_eprom(text_run);
   power.setTimeOn(parameter.timeOn);
   power.setTimeOff(parameter.timeOff);
@@ -589,13 +591,17 @@ void alarm(void)
     }
   }
   // play mp3 tilawah
+  // Serial.println("play = ");
   for (uint8_t i = 1; i < 6; i++)
   {
     bool play;
     play = jadwal.getAlarmByOffsite(i, myRtc.getJam(), myRtc.getMenit(), -10);
+
+    // Serial.println(play);
     if (play)
     {
       myDFPlayer.playFolder(2, i);
+      // myDFPlayer.playLargeFolder(2, i);
     }
   }
   // Masuk waktu sholat

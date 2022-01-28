@@ -138,21 +138,20 @@ void Jadwal::lookupJadwal(unsigned char tanggal, unsigned char bulan, int tahun)
 }
 bool Jadwal::getAlarmByOffsite(uint8_t index, uint8_t jam, uint8_t menit, int offsite)
 {
-    bool result = false;
-    int time = (jam * 60) + menit + offsite;
+    int time = (jam * 60) + menit;
     int compare;
     for (uint8_t i = 0; i < 7; i++)
     {
         if (i == index)
         {
-            compare = (jadwal[i * 2] * 60) + jadwal[(i * 2) + 1];
+            compare = (jadwal[i * 2] * 60) + jadwal[(i * 2) + 1] + offsite;
             if (compare == time)
             {
-                result = true;
+                return true;
             }
         }
     }
-    return result;
+    return false;
 }
 
 uint8_t Jadwal::getAlarm()
@@ -185,7 +184,7 @@ void Jadwal::setJam(unsigned char jam, unsigned char menit)
     }
     if (jam == jadwal[4] && menit == jadwal[5])
     {
-        if (hari == 5) //jumat
+        if (hari == 5) // jumat
         {
             alarm_status = alamat.ALARM_JUMAT;
         }
