@@ -22,6 +22,8 @@ class Tilawah
 private:
     EpromTilawah eprom;
     DFRobotDFPlayerMini *player;
+    //create int  arry[5] to store the time sholat
+    int timeSholat[5];
 
 public:
     /*
@@ -33,8 +35,8 @@ public:
     enum Folder
     {
         ADZAN,
-        ALQURAN = 50,
-        TARHIM_SHOLAWAT = 200
+        ALQURAN ,
+        TARHIM_SHOLAWAT 
     };
     Tilawah(/* args */);
     ~Tilawah();

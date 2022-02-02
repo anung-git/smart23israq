@@ -46,3 +46,4 @@ void Power::setTimeOff(int time)
 {
     timeOff = time;
 }
+
