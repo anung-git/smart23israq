@@ -1,7 +1,7 @@
 #if !defined(BLUETOOTH_H)
 #define BLUETOOTH_H
 
-#include "EpromStruct.h"
+#include "Memory.h"
 #include "Rtc.h"
 #include "Buzer.h"
 #include "power.h"
@@ -11,7 +11,8 @@
 class Bluetooth
 {
 private:
-    EpromObject *parameter;
+    // EpromObject *bluetoothEprom;
+    Memory *eprom;
     Rtc *rtc;
     DFRobotDFPlayerMini *myPlayer;
     Buzer *buzer;
@@ -35,7 +36,6 @@ private:
         command_end,
     };
 
-
     const unsigned int TEXT_IQ_SUBUH = 100;
     const unsigned int TEXT_IQ_DUHUR = 200;
     const unsigned int TEXT_IQ_ASHAR = 300;
@@ -47,13 +47,29 @@ private:
     volatile unsigned char command;
     unsigned char status;
 
+    void playManual(String &data);
+    void setPower(String &data);
+    void setTime(String &data);
+    void setIqomah(String &data);
+    void setAdzan(String &data);
+    void setTarhim(String &data);
+    void setOffsite(String &data);
+    void setText(String &data);
+    void setFix(String &data);
+    void setBtKota(String &data);
+    void setBuzer(String &data);
+    void cmdStart(String &data);
+    void setBrightness(String &data);
+    void resetPabrik(String &data);
+
 public:
     Bluetooth();
     ~Bluetooth();
-    void setEprom(EpromObject *param);
+    void setEprom(Memory *e);
     void setBuzer(Buzer *buzer);
     void setRtc(Rtc *rtc);
     void setPower(Power *power);
+    void setPlayer(DFRobotDFPlayerMini *player);
     void loop();
     unsigned char available();
     unsigned char getStatus();

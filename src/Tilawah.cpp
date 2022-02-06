@@ -2,34 +2,66 @@
 
 Tilawah::Tilawah(/* args */)
 {
-    EEPROM.get(1500, eprom);
-}
-void Tilawah::stop()
-{
-    this->player->stop();
 }
 
-void Tilawah::playQuran(unsigned char file)
+void Tilawah::playAdzanSubuh()
 {
-    this->player->playFolder(ALQURAN, file);
+    unsigned char track = eprom->getIndexAdzanSubuh();
+    if (track)
+    {
+        player->playFolder(1, track);
+    }
 }
-void Tilawah::playAdzan(unsigned char file)
+void Tilawah::playAdzanDzuhur()
 {
-    this->player->playFolder(ADZAN, file);
+    unsigned char track = eprom->getIndexAdzanDzuhur();
+    if (track)
+    {
+        player->playFolder(1, track);
+    }
 }
-void Tilawah::playSholawat(unsigned char file)
+void Tilawah::playAdzanAshar()
 {
-    this->player->playFolder(TARHIM_SHOLAWAT, file);
+    unsigned char track = eprom->getIndexAdzanAshar();
+    if (track)
+    {
+        player->playFolder(1, track);
+    }
 }
+void Tilawah::playAdzanMaghrib()
+{
+    unsigned char track = eprom->getIndexAdzanMaghrib();
+    if (track)
+    {
+        player->playFolder(1, track);
+    }
+}
+void Tilawah::playAdzanIsya()
+{
+    unsigned char track = eprom->getIndexAdzanIsya();
+    if (track)
+    {
+        player->playFolder(1, track);
+    }
+}
+void Tilawah::playAdzanJumat()
+{
+    unsigned char track = eprom->getIndexAdzanJumat();
+    if (track)
+    {
+        player->playFolder(1, track);
+    }
+}
+
 void Tilawah::setPlayer(DFRobotDFPlayerMini *player)
 {
     this->player = player;
 }
-// volume 0...30
-void Tilawah::setVolume(unsigned char volume)
+void Tilawah::setEprom(Memory *e)
 {
-    this->player->volume(volume);
+    this->eprom = e;
 }
+
 void Tilawah::setTimeSubuh(unsigned char jam, unsigned char menit)
 {
     timeSholat[0] = jam * 60 + menit;
@@ -50,83 +82,87 @@ void Tilawah::setTimeIsya(unsigned char jam, unsigned char menit)
 {
     timeSholat[4] = jam * 60 + menit;
 }
-void Tilawah::setTimeImsya(unsigned char jam, unsigned char menit)
-{
-    timeSholat[5] = jam * 60 + menit;
-}
-void Tilawah::loop()
-{
-}
 
 Tilawah::~Tilawah()
 {
+}
+void Tilawah::setHari(unsigned char hari)
+{
+    this->hari = hari;
 }
 
 // set time rtc
 void Tilawah::setTime(unsigned char jam, unsigned char menit)
 {
     int time = (jam * 60) + menit;
-    if (eprom.timeSubuh > 0)
-    {
-        if (time == timeSholat[0])
-        {
-            this->player->playMp3Folder(eprom.indexSubuh);
-        }
-        if (time == (timeSholat[0] - eprom.timeSubuh))
-        {
-            this->player->playMp3Folder(eprom.indexSubuh);
-        }
-    }
-    if (eprom.timeDzuhur > 0)
-    {
-        if (time == timeSholat[1])
-        {
-            this->player->playMp3Folder(eprom.indexDzuhur);
-        }
-        if (time == (timeSholat[1] - eprom.timeDzuhur))
-        {
-            this->player->playMp3Folder(eprom.indexDzuhur);
-        }
-    }
-    if (eprom.timeAshar > 0)
-    {
-        if (time == timeSholat[2])
-        {
-            this->player->playMp3Folder(eprom.indexAshar);
-        }
-        if (time == (timeSholat[2] - eprom.timeAshar))
-        {
-            this->player->playMp3Folder(eprom.indexAshar);
-        }
-    }
-    if (eprom.timeMaghrib > 0)
-    {
+    int timeTilawahSubuh = timeSholat[0] - eprom->getTimeTilawahSubuh();
+    int timeTilawahDzuhur = timeSholat[1] - eprom->getTimeTilawahDzuhur();
+    int timeTilawahAshar = timeSholat[2] - eprom->getTimeTilawahAshar();
+    int timeTilawahMaghrib = timeSholat[3] - eprom->getTimeTilawahMaghrib();
+    int timeTilawahIsya = timeSholat[4] - eprom->getTimeTilawahIsya();
+    int timeTilawahJumat = timeSholat[5] - eprom->getTimeTilawahJumat();
 
-        if (time == timeSholat[3])
+    if (time == timeTilawahSubuh)
+    {
+        unsigned char track = eprom->getIndexTilawahSubuh();
+        if (track != 0)
         {
-            this->player->playMp3Folder(eprom.indexMaghrib);
-        }
-        if (time == (timeSholat[3] - eprom.timeMaghrib))
-        {
-            this->player->playMp3Folder(eprom.indexMaghrib);
+            player->playFolder(2, track);
         }
     }
-    if (eprom.indexIsya > 0)
+    else if (time == timeTilawahDzuhur)
     {
-        if (time == timeSholat[4])
+        if (hari == 5)
         {
-            this->player->playMp3Folder(eprom.indexIsya);
+            return; // jumat
         }
-        if (time == (timeSholat[4] - eprom.timeIsya))
+        unsigned char track = eprom->getIndexTilawahDzuhur();
+        if (track != 0)
         {
-            this->player->playMp3Folder(eprom.indexIsya);
+            player->playFolder(2, track);
+        }
+    }
+    else if (time == timeTilawahAshar)
+    {
+        unsigned char track = eprom->getIndexTilawahAshar();
+        if (track != 0)
+        {
+            player->playFolder(2, track);
+        }
+    }
+    else if (time == timeTilawahMaghrib)
+    {
+        unsigned char track = eprom->getIndexTilawahMaghrib();
+        if (track != 0)
+        {
+            player->playFolder(2, track);
+        }
+    }
+    else if (time == timeTilawahIsya)
+    {
+        unsigned char track = eprom->getIndexTilawahIsya();
+        if (track != 0)
+        {
+            player->playFolder(2, track);
+        }
+    }
+    else if (time == timeTilawahJumat)
+    {
+        if (hari != 5)
+        {
+            return; // jumat
+        }
+        unsigned char track = eprom->getIndexTilawahJumat();
+        if (track != 0)
+        {
+            player->playFolder(2, track);
         }
     }
 }
 
-//create task scheduler
-void Tilawah::createTaskScheduler()
-{
-    // create task scheduler
-    scheduler.addTask(this->loop, 1000, true);
-}
+// create task scheduler
+//  void Tilawah::createTaskScheduler()
+//  {
+//      // create task scheduler
+//      scheduler.addTask(this->loop, 1000, true);
+//  }

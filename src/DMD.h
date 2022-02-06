@@ -131,7 +131,7 @@ LED Panel Layout in RAM
 #define DMD_RAM_SIZE_BYTES        ((DMD_PIXELS_ACROSS*DMD_BITSPERPIXEL/8)*DMD_PIXELS_DOWN)
                                   // (32x * 1 / 8) = 4 bytes, * 16y = 64 bytes per screen here.
 //lookup table for DMD::writePixel to make the pixel indexing routine faster
-static byte bPixelLookupTable[8] =
+const byte bPixelLookupTable[8] =
 {
    0x80,   //0, bit 7
    0x40,   //1, bit 6

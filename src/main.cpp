@@ -17,11 +17,12 @@
 #include "Alamat.h"
 
 #include "Tombol.h"
-#include "EpromStruct.h"
+#include "Memory.h"
 #include "Bluetooth.h"
+#include "Tilawah.h"
 
 void reset();
-void baca_jadwal(int daerah);
+void baca_jadwal();
 void display_eprom(int add);
 void tampil_text(int _alamat_text);
 void alarm_on();
@@ -63,10 +64,11 @@ DMD dmd(DISPLAYS_ACROSS, DISPLAYS_DOWN);
 Rtc myRtc = Rtc();
 Segmen mySegmen = Segmen();
 DFRobotDFPlayerMini myDFPlayer;
-EpromObject parameter; // Variable to store custom object read from EEPROM.
+Memory eeprom = Memory();
 Jadwal jadwal = Jadwal();
 Alamat alamat = Alamat();
 Bluetooth myBluetooth = Bluetooth();
+Tilawah tilawah = Tilawah();
 //==================================
 // Var Global
 volatile int alamat_eprom = 0;
@@ -95,7 +97,7 @@ void setup()
     myTombol.loop();
     if (myTombol.getPos() == 200)
     {
-      parameter.kota = 0;
+      eeprom.setKota(0);
       reset();
       myTombol.resetMenu();
       break;
@@ -109,22 +111,26 @@ void setup()
   myDFPlayer.setTimeOut(500);
   dmd.selectFont(myFont);
   dmd.setBrightness(7);
-
-  EEPROM.get(0, parameter);
+  myDFPlayer.reset();
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
-  myDFPlayer.volume(26); // Set volume . From 0 to 30
-  myDFPlayer.play(1);    // Play the first mp3
-  // myDFPlayer.playFolder(2, 1);
-
+  myDFPlayer.EQ(eeprom.getEqualizer());     // Set equalizer From 0 to 5
+  myDFPlayer.volume(eeprom.getVolumemp3()); // Set volume From 0 to 30
+  myDFPlayer.play(1);                       // Play the first mp3
   display_eprom(text_run);
-  power.setTimeOn(parameter.timeOn);
-  power.setTimeOff(parameter.timeOff);
+  power.setTimeOn(eeprom.getTimeOn());
+  power.setTimeOff(eeprom.getTimeOff());
   myTombol.setBuzer(&myBuzer);
 
-  myBluetooth.setEprom(&parameter);
+  myBluetooth.setEprom(&eeprom);
   myBluetooth.setBuzer(&myBuzer);
   myBluetooth.setRtc(&myRtc);
   myBluetooth.setPower(&power);
+  myBluetooth.setPlayer(&myDFPlayer);
+
+  tilawah.setPlayer(&myDFPlayer);
+  tilawah.setEprom(&eeprom);
+  myRtc.readAll();
+  baca_jadwal();
 }
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -139,7 +145,14 @@ void loop()
     menit = myRtc.getMenit();
     jam = myRtc.getJam();
     hari = myRtc.getHari();
-
+    // Serial.print("volume = ");
+    // Serial.println(PARAMETER.volumeMp3);
+    // Serial.print("EQ = ");
+    // Serial.println(PARAMETER.equalizer);
+    // Serial.print("on = ");
+    // Serial.println(PARAMETER.timeOn);
+    // Serial.print("addr volume mp3 = ");
+    // Serial.println(int(&PARAMETER));
     if (menit != temp_min)
     {
       alarm();
@@ -147,12 +160,11 @@ void loop()
     }
     if (jam != temp_jam)
     {
-      baca_jadwal(parameter.kota);
+      baca_jadwal();
       temp_jam = jam;
     }
     if (hari != temp_hri)
     {
-      EEPROM.get(0, parameter);
       temp_hri = hari;
     }
     if (myBluetooth.available())
@@ -160,7 +172,7 @@ void loop()
       switch (myBluetooth.getStatus())
       {
       case 1:
-        baca_jadwal(parameter.kota);
+        baca_jadwal();
         break;
       case 2:
         alamat_eprom = 0;
@@ -168,7 +180,7 @@ void loop()
         break;
       case 3:
         reset();
-        baca_jadwal(parameter.kota);
+        baca_jadwal();
         alamat_eprom = 0;
         display_eprom(text_run);
         break;
@@ -222,12 +234,10 @@ void setOffsite()
     return;
   }
   myBuzer.onOnce(200);
-
-  // Serial.print("Start set kota =");
-  // Serial.println(parameter.kota);
   myTombol.setMax(316);
   myTombol.setMin(0);
-  myTombol.setValue(parameter.kota);
+  jam = eeprom.getKota();
+  myTombol.setValue(jam);
   mySegmen.displaySetParameter();
   mySegmen.displayParameter(mySegmen.KALENDER_SETKOTA);
   while (myTombol.getPos() == (200))
@@ -235,13 +245,14 @@ void setOffsite()
     mySegmen.loop();
     tampil_text(text_run);
     myTombol.loop();
-    mySegmen.setTime(parameter.kota / 100, parameter.kota % 100);
+    mySegmen.setTime(jam / 100, jam % 100);
     if (event300ms.getEvent())
     {
       mySegmen.displayTogleOff();
     }
-    parameter.kota = myTombol.getValue();
+    jam = myTombol.getValue();
   }
+  eeprom.setKota(jam);
 
   for (unsigned char i = 0; i < 5; i++)
   {
@@ -251,23 +262,23 @@ void setOffsite()
     {
     case 0:
       mySegmen.displaySubuh();
-      jam = parameter.tambah_kurang_subuh;
+      jam = eeprom.getTambahKurangSubuh();
       break;
     case 1:
       mySegmen.displayDzuhur();
-      jam = parameter.tambah_kurang_duhur;
+      jam = eeprom.getTambahKurangDuhur();
       break;
     case 2:
       mySegmen.displayAshar();
-      jam = parameter.tambah_kurang_ashar;
+      jam = eeprom.getTambahKurangAshar();
       break;
     case 3:
       mySegmen.displayMaghrib();
-      jam = parameter.tambah_kurang_maghrib;
+      jam = eeprom.getTambahKurangMaghrib();
       break;
     case 4:
       mySegmen.displayIsya();
-      jam = parameter.tambah_kurang_isya;
+      jam = eeprom.getTambahKurangIsya();
       break;
     }
     myTombol.setValue(jam);
@@ -288,22 +299,22 @@ void setOffsite()
         switch (i)
         {
         case 0:
-          parameter.tambah_kurang_subuh = jam;
+          eeprom.setTambahKurangSubuh(jam);
           break;
         case 1:
-          parameter.tambah_kurang_duhur = jam;
+          eeprom.setTambahKurangDuhur(jam);
           break;
         case 2:
-          parameter.tambah_kurang_ashar = jam;
+          eeprom.setTambahKurangAshar(jam);
           break;
         case 3:
-          parameter.tambah_kurang_maghrib = jam;
+          eeprom.setTambahKurangMaghrib(jam);
           break;
         case 4:
-          parameter.tambah_kurang_isya = jam;
+          eeprom.setTambahKurangIsya(jam);
           break;
         }
-        baca_jadwal(parameter.kota);
+        baca_jadwal();
       }
       jam = myTombol.getValue();
     }
@@ -321,8 +332,7 @@ void setOffsite()
       break;
     }
   }
-  EEPROM.put(0, parameter);
-  baca_jadwal(parameter.kota);
+  baca_jadwal();
   mySegmen.displayNormal();
   myTombol.resetMenu();
   myBuzer.onRepeat(3, 100);
@@ -335,21 +345,18 @@ void setParameter()
   unsigned char jam = 00;
   // set parameter
   int param[10];
-  param[0] = parameter.beep;
-  param[1] = parameter.iqomah_subuh;
-  param[2] = parameter.iqomah_duhur;
-  param[3] = parameter.iqomah_ashar;
-  param[4] = parameter.iqomah_maghrib;
-  param[5] = parameter.iqomah_isya;
-  param[6] = parameter.iqomah_jumat;
-  param[7] = parameter.lama_sholat_subuh;
-  param[8] = parameter.timeOn;
-  param[9] = parameter.timeOff;
-  // param[10] = parameter.kota;
-
+  param[0] = eeprom.getBeep();
+  param[1] = eeprom.getIqomahSubuh();
+  param[2] = eeprom.getIqomahDuhur();
+  param[3] = eeprom.getIqomahAshar();
+  param[4] = eeprom.getIqomahMaghrib();
+  param[5] = eeprom.getIqomahIsya();
+  param[6] = eeprom.getIqomahJumat();
+  param[7] = eeprom.getLamaSholatSubuh();
+  param[8] = eeprom.getTimeOn();
+  param[9] = eeprom.getTimeOff();
   for (unsigned char i = 0; i < 10; i++)
   {
-
     if (i < 8)
     {
       myTombol.setMax(99);
@@ -396,43 +403,33 @@ void setParameter()
   mySegmen.displayParameter(mySegmen.KALENDER_RESET);
   // end set param
   mySegmen.displayOff();
-  parameter.beep = param[0];
-  parameter.iqomah_subuh = param[1];
-  parameter.iqomah_duhur = param[2];
-  parameter.iqomah_ashar = param[3];
-  parameter.iqomah_maghrib = param[4];
-  parameter.iqomah_isya = param[5];
-  parameter.iqomah_jumat = param[6];
-  parameter.lama_sholat_subuh = param[7];
-  parameter.lama_sholat_duhur = param[7];
-  parameter.lama_sholat_ashar = param[7];
-  parameter.lama_sholat_maghrib = param[7];
-  parameter.lama_sholat_isya = param[7];
-  parameter.lama_sholat_jumat = param[7];
-  parameter.timeOn = param[8];
-  parameter.timeOff = param[9];
-  // parameter.kota = param[10];
-  parameter.timer_adzan_subuh = 4;
-  parameter.timer_adzan_duhur = 4;
-  parameter.timer_adzan_ashar = 4;
-  parameter.timer_adzan_maghrib = 4;
-  parameter.timer_adzan_jumat = 4;
-  parameter.timer_adzan_isya = 4;
 
-  parameter.jadwal_fix_subuh = 0;
-  parameter.jadwal_fix_duhur = 0;
-  parameter.jadwal_fix_ashar = 0;
-  parameter.jadwal_fix_maghrib = 0;
-  parameter.jadwal_fix_isya = 0;
-
-  parameter.tartil_subuh = 0;
-  parameter.tartil_duhur = 0;
-  parameter.tartil_ashar = 0;
-  parameter.tartil_maghrib = 0;
-  parameter.tartil_isya = 0;
-  parameter.tartil_jumat = 0;
-
-  EEPROM.put(0, parameter);
+  eeprom.setBeep(param[0]);
+  eeprom.setIqomahSubuh(param[1]);
+  eeprom.setIqomahDuhur(param[2]);
+  eeprom.setIqomahAshar(param[3]);
+  eeprom.setIqomahMaghrib(param[4]);
+  eeprom.setIqomahIsya(param[5]);
+  eeprom.setIqomahJumat(param[6]);
+  eeprom.setLamaSholatSubuh(param[7]);
+  eeprom.setLamaSholatDuhur(param[7]);
+  eeprom.setLamaSholatAshar(param[7]);
+  eeprom.setLamaSholatMaghrib(param[7]);
+  eeprom.setLamaSholatIsya(param[7]);
+  eeprom.setLamaSholatJumat(param[7]);
+  eeprom.setTimeOn(param[8]);
+  eeprom.setTimeOff(param[9]);
+  eeprom.setTimerAdzanSubuh(4);
+  eeprom.setTimerAdzanDuhur(4);
+  eeprom.setTimerAdzanAshar(4);
+  eeprom.setTimerAdzanMaghrib(4);
+  eeprom.setTimerAdzanIsya(4);
+  eeprom.setTimerAdzanJumat(4);
+  eeprom.setJadwalFixSubuh(0);
+  eeprom.setJadwalFixDzuhur(0);
+  eeprom.setJadwalFixAshar(0);
+  eeprom.setJadwalFixMaghrib(0);
+  eeprom.setJadwalFixIsya(0);
   second.reset();
   while (myTombol.getPos() == 110)
   {
@@ -444,12 +441,10 @@ void setParameter()
       break;
     }
   }
-  baca_jadwal(parameter.kota);
+  baca_jadwal(); // PARAMETER.kota);
   mySegmen.displayNormal();
   myTombol.resetMenu();
   myBuzer.onRepeat(3, 100);
-  // Serial.print("End set kota =");
-  // Serial.println(parameter.kota);
 }
 void setJam()
 {
@@ -565,7 +560,7 @@ void setJam()
       break;
     }
   }
-  baca_jadwal(parameter.kota);
+  baca_jadwal();
   mySegmen.displayNormal();
   myTombol.resetMenu();
   myBuzer.onRepeat(3, 100);
@@ -591,19 +586,8 @@ void alarm(void)
     }
   }
   // play mp3 tilawah
-  // Serial.println("play = ");
-  for (uint8_t i = 1; i < 6; i++)
-  {
-    bool play;
-    play = jadwal.getAlarmByOffsite(i, myRtc.getJam(), myRtc.getMenit(), -10);
-
-    // Serial.println(play);
-    if (play)
-    {
-      myDFPlayer.playFolder(2, i);
-      // myDFPlayer.playLargeFolder(2, i);
-    }
-  }
+  tilawah.setHari(myRtc.getHari());
+  tilawah.setTime(myRtc.getJam(), myRtc.getMenit());
   // Masuk waktu sholat
   jadwal.setJam(myRtc.getJam(), myRtc.getMenit());
   jadwal.setHari(myRtc.getHari());
@@ -616,13 +600,12 @@ void alarm(void)
 
 void alarm_on()
 { // time out adzan
-  uint8_t beep_alarm = parameter.beep;
+  myDFPlayer.stop();
   int time_adzan;
   int _alamat_text;
   int count_iqomah;
   int stanby_sholat;
   alamat_eprom = 0;
-  // beep_alarm = parameter.beep; // parameter.beep;
   switch (jadwal.getAlarm())
   {
   case alamat.ALARM_IMSYA:
@@ -632,13 +615,13 @@ void alarm_on()
     mySegmen.displayImsya();
     break;
   case alamat.ALARM_SUBUH:
-    time_adzan = parameter.timer_adzan_subuh * 60;
-    count_iqomah = parameter.iqomah_subuh * 60;
-    stanby_sholat = parameter.lama_sholat_subuh * 60;
+    tilawah.playAdzanSubuh();
+    time_adzan = eeprom.getTimerAdzanSubuh() * 60;
+    count_iqomah = eeprom.getIqomahSubuh() * 60;
+    stanby_sholat = eeprom.getLamaSholatSubuh() * 60;
     display_eprom(text_iq_subuh);
     _alamat_text = text_iq_subuh;
     mySegmen.displaySubuh();
-    myDFPlayer.playFolder(1, 1); // play adzan
     break;
   case alamat.ALARM_SURUQ:
     time_adzan = 60;
@@ -648,55 +631,53 @@ void alarm_on()
     break;
 
   case alamat.ALARM_DZUHUR:
-    time_adzan = parameter.timer_adzan_duhur * 60;
-    count_iqomah = parameter.iqomah_duhur * 60;
-    stanby_sholat = parameter.lama_sholat_duhur * 60;
+    tilawah.playAdzanDzuhur();
+    time_adzan = eeprom.getTimerAdzanDuhur() * 60;
+    count_iqomah = eeprom.getIqomahDuhur() * 60;
+    stanby_sholat = eeprom.getLamaSholatDuhur() * 60;
     display_eprom(text_iq_duhur);
     _alamat_text = text_iq_duhur;
     mySegmen.displayDzuhur();
-    myDFPlayer.playFolder(1, 2); // play adzan
     break;
   case alamat.ALARM_ASHAR:
-    time_adzan = parameter.timer_adzan_ashar * 60;
-    count_iqomah = parameter.iqomah_ashar * 60;
-    stanby_sholat = parameter.lama_sholat_ashar * 60;
+    tilawah.playAdzanAshar();
+    time_adzan = eeprom.getTimerAdzanAshar() * 60;
+    count_iqomah = eeprom.getIqomahAshar() * 60;
+    stanby_sholat = eeprom.getLamaSholatAshar() * 60;
     display_eprom(text_iq_ashar);
     _alamat_text = text_iq_ashar;
     mySegmen.displayAshar();
-    myDFPlayer.playFolder(1, 3); // play adzan
     break;
   case alamat.ALARM_MAGHRIB:
-    time_adzan = parameter.timer_adzan_maghrib * 60;
-    count_iqomah = parameter.iqomah_maghrib * 60;
-    stanby_sholat = parameter.lama_sholat_maghrib * 60;
+    tilawah.playAdzanMaghrib();
+    time_adzan = eeprom.getTimerAdzanMaghrib() * 60;
+    count_iqomah = eeprom.getIqomahMaghrib() * 60;
+    stanby_sholat = eeprom.getLamaSholatMaghrib() * 60;
     display_eprom(text_iq_maghrib);
     _alamat_text = text_iq_maghrib;
     mySegmen.displayMaghrib();
-    myDFPlayer.playFolder(1, 4); // play adzan
     break;
   case alamat.ALARM_ISYA:
-    time_adzan = parameter.timer_adzan_isya * 60;
-    count_iqomah = parameter.iqomah_isya * 60;
-    stanby_sholat = parameter.lama_sholat_isya * 60;
+    tilawah.playAdzanIsya();
+    time_adzan = eeprom.getTimerAdzanIsya() * 60;
+    count_iqomah = eeprom.getIqomahIsya() * 60;
+    stanby_sholat = eeprom.getLamaSholatIsya() * 60;
     display_eprom(text_iq_isya);
     _alamat_text = text_iq_isya;
     mySegmen.displayIsya();
-    myDFPlayer.playFolder(1, 5); // play adzan
     break;
   case alamat.ALARM_JUMAT:
-    time_adzan = parameter.timer_adzan_jumat * 60;
-    count_iqomah = parameter.iqomah_jumat * 60;
-    stanby_sholat = parameter.lama_sholat_jumat * 60;
+    tilawah.playAdzanJumat();
+    time_adzan = eeprom.getTimerAdzanJumat() * 60;
+    count_iqomah = eeprom.getIqomahJumat() * 60;
+    stanby_sholat = eeprom.getLamaSholatJumat() * 60;
     display_eprom(text_iq_jumat);
     _alamat_text = text_iq_jumat;
     mySegmen.displayJumat();
-    myDFPlayer.playFolder(1, 5); // play adzan
-    break;
-  default:
     break;
   }
 
-  myBuzer.onRepeat(beep_alarm, 500);
+  myBuzer.onRepeat(eeprom.getBeep(), 500);
   while (time_adzan)
   {
     if (second.getEvent())
@@ -711,6 +692,7 @@ void alarm_on()
     }
     myBuzer.loop();
     mySegmen.loop();
+    myBluetooth.loop();
     tampil_text(_alamat_text);
   }
   // time iqomah count down
@@ -732,6 +714,7 @@ void alarm_on()
     {
       myBuzer.loop();
       mySegmen.loop();
+      myBluetooth.loop();
       tampil_text(_alamat_text);
       if ((millis() % 1000) < 500)
       {
@@ -766,6 +749,7 @@ void alarm_on()
       stanby_sholat--;
     }
     mySegmen.loop();
+    myBluetooth.loop();
     if ((millis() % 1000) < 500)
     {
       dmd.drawChar(59, 0, ':', GRAPHICS_NORMAL);
@@ -779,30 +763,31 @@ void alarm_on()
   display_eprom(text_run);
   alamat_eprom = 0;
 }
-void baca_jadwal(int daerah)
+void baca_jadwal()
 {
+  int daerah = eeprom.getKota();
   float lt = pgm_read_float(lintang + daerah);
   float bj = pgm_read_float(bujur + daerah);
   unsigned char jam, menit;
   unsigned char wkt = pgm_read_byte_near(gmt + daerah);
   if (daerah == 0)
   {
-    wkt = parameter.set_kota_gmt;
-    lt = parameter.set_kota_lnt;
-    bj = parameter.set_kota_bjr;
+    wkt = eeprom.getKotaGMT();
+    lt = eeprom.getKotaLintang();
+    bj = eeprom.getKotaBujur();
   }
   // baca jadwal
-  jadwal.setOffsiteSubuh(parameter.tambah_kurang_subuh);
-  jadwal.setOffsiteDzuhur(parameter.tambah_kurang_duhur);
-  jadwal.setOffsiteAshar(parameter.tambah_kurang_ashar);
-  jadwal.setOffsiteMaghrib(parameter.tambah_kurang_maghrib);
-  jadwal.setOffsiteIsya(parameter.tambah_kurang_isya);
+  jadwal.setOffsiteSubuh(eeprom.getTambahKurangSubuh());
+  jadwal.setOffsiteDzuhur(eeprom.getTambahKurangDuhur());
+  jadwal.setOffsiteAshar(eeprom.getTambahKurangAshar());
+  jadwal.setOffsiteMaghrib(eeprom.getTambahKurangMaghrib());
+  jadwal.setOffsiteIsya(eeprom.getTambahKurangIsya());
   // set fix jadwal
-  jadwal.setFixSubuh(parameter.jadwal_fix_subuh);
-  jadwal.setFixDzuhur(parameter.jadwal_fix_duhur);
-  jadwal.setFixAshar(parameter.jadwal_fix_ashar);
-  jadwal.setFixMaghrib(parameter.jadwal_fix_maghrib);
-  jadwal.setFixIsya(parameter.jadwal_fix_isya);
+  jadwal.setFixSubuh(eeprom.getJadwalFixSubuh());
+  jadwal.setFixDzuhur(eeprom.getJadwalFixDzuhur());
+  jadwal.setFixAshar(eeprom.getJadwalFixAshar());
+  jadwal.setFixMaghrib(eeprom.getJadwalFixMaghrib());
+  jadwal.setFixIsya(eeprom.getJadwalFixIsya());
   jadwal.setZona(wkt);
   jadwal.setBujur(bj);
   jadwal.setLintang(lt);
@@ -810,16 +795,21 @@ void baca_jadwal(int daerah)
   jadwal.getImsya(jam, menit);
   mySegmen.setImsya(jam, menit);
   jadwal.getSubuh(jam, menit);
+  tilawah.setTimeSubuh(jam, menit);
   mySegmen.setSubuh(jam, menit);
   jadwal.getSuruq(jam, menit);
   mySegmen.setSuruq(jam, menit);
   jadwal.getDzuhur(jam, menit);
+  tilawah.setTimeDzuhur(jam, menit);
   mySegmen.setDzuhur(jam, menit);
   jadwal.getAshar(jam, menit);
+  tilawah.setTimeAshar(jam, menit);
   mySegmen.setAshar(jam, menit);
   jadwal.getMaghrib(jam, menit);
+  tilawah.setTimeMaghrib(jam, menit);
   mySegmen.setMaghrib(jam, menit);
   jadwal.getIsya(jam, menit);
+  tilawah.setTimeIsya(jam, menit);
   mySegmen.setIsya(jam, menit);
 }
 void tampil_text(int _alamat_text)
@@ -876,57 +866,48 @@ void display_eprom(int add)
 
 void reset()
 {
-  // parameter.kota = 0;
-  parameter.beep = 10;
-  parameter.timer_adzan_subuh = 4;
-  parameter.timer_adzan_duhur = 4;
-  parameter.timer_adzan_ashar = 4;
-  parameter.timer_adzan_maghrib = 4;
-  parameter.timer_adzan_isya = 4;
-  parameter.timer_adzan_jumat = 4;
-  parameter.iqomah_subuh = 12;
-  parameter.iqomah_duhur = 12;
-  parameter.iqomah_ashar = 12;
-  parameter.iqomah_maghrib = 12;
-  parameter.iqomah_isya = 12;
-  parameter.iqomah_jumat = 25;
-  parameter.lama_sholat_subuh = 5;
-  parameter.lama_sholat_duhur = 5;
-  parameter.lama_sholat_ashar = 5;
-  parameter.lama_sholat_maghrib = 5;
-  parameter.lama_sholat_isya = 5;
-  parameter.lama_sholat_jumat = 5;
-  parameter.tartil_subuh = 0; // 0= mati dan >0 hidup
-  parameter.tartil_duhur = 0;
-  parameter.tartil_ashar = 0;
-  parameter.tartil_maghrib = 0;
-  parameter.tartil_isya = 0;
-  parameter.tartil_jumat = 0;
-  parameter.kecerahan_1 = 1;
-  parameter.kecerahan_2 = 1;
-  parameter.kecerahan_3 = 1;
-  parameter.kecerahan_4 = 1;
-  parameter.jam_kecerahan_1 = 1;
-  parameter.jam_kecerahan_2 = 1;
-  parameter.jam_kecerahan_3 = 1;
-  parameter.jam_kecerahan_4 = 1;
-  parameter.tambah_kurang_subuh = 0;
-  parameter.tambah_kurang_duhur = 0;
-  parameter.tambah_kurang_ashar = 0;
-  parameter.tambah_kurang_maghrib = 0;
-  parameter.tambah_kurang_isya = 0;
-  parameter.jadwal_fix_subuh = 0;
-  parameter.jadwal_fix_duhur = 0;
-  parameter.jadwal_fix_ashar = 0;
-  parameter.jadwal_fix_maghrib = 0;
-  parameter.jadwal_fix_isya = 0;
-  parameter.mazhab_ashar = 0;
-  parameter.set_kota_gmt = 7;
-  parameter.set_kota_lnt = -7.80;
-  parameter.set_kota_bjr = 110.400;
-  parameter.timeOn = 3 * 60;
-  parameter.timeOff = 22 * 60;
-  EEPROM.put(0, parameter);
+  eeprom.setKota(0);
+  eeprom.setBeep(10);
+  eeprom.setTimerAdzanSubuh(4);
+  eeprom.setTimerAdzanDuhur(4);
+  eeprom.setTimerAdzanAshar(4);
+  eeprom.setTimerAdzanMaghrib(4);
+  eeprom.setTimerAdzanIsya(4);
+  eeprom.setTimerAdzanJumat(4);
+  eeprom.setIqomahSubuh(12);
+  eeprom.setIqomahDuhur(12);
+  eeprom.setIqomahAshar(12);
+  eeprom.setIqomahMaghrib(12);
+  eeprom.setIqomahIsya(12);
+  eeprom.setIqomahJumat(25);
+  eeprom.setLamaSholatSubuh(5);
+  eeprom.setLamaSholatDuhur(5);
+  eeprom.setLamaSholatAshar(5);
+  eeprom.setLamaSholatMaghrib(5);
+  eeprom.setLamaSholatIsya(5);
+  eeprom.setLamaSholatJumat(5);
+  eeprom.setTambahKurangSubuh(0);
+  eeprom.setTambahKurangDuhur(0);
+  eeprom.setTambahKurangAshar(0);
+  eeprom.setTambahKurangMaghrib(0);
+  eeprom.setTambahKurangIsya(0);
+  eeprom.setJadwalFixSubuh(0);
+  eeprom.setJadwalFixDzuhur(0);
+  eeprom.setJadwalFixAshar(0);
+  eeprom.setJadwalFixMaghrib(0);
+  eeprom.setJadwalFixIsya(0);
+  eeprom.setKotaGMT(7);
+  eeprom.setKotaLintang(-7.80);
+  eeprom.setKotaBujur(110.400);
+  eeprom.setTimeOn(3 * 60);
+  eeprom.setTimeOff(22 * 60);
+  eeprom.setTimeTilawahSubuh(10);
+  eeprom.setTimeTilawahDzuhur(10);
+  eeprom.setTimeTilawahAshar(10);
+  eeprom.setTimeTilawahMaghrib(10);
+  eeprom.setTimeTilawahIsya(10);
+  eeprom.setTimeTilawahJumat(20);
+
   myBuzer.setOff();
   for (int t = 0; t < 420; t++)
   {
