@@ -79,11 +79,11 @@ void Memory::setTimerAdzanSubuh(unsigned char timer)
 }
 unsigned char Memory::getTimerAdzanDuhur()
 {
-    return readByte(TAMBAH_KURANG_DUHUR);
+    return readByte(TIMER_ADZAN_DUHUR);
 }
 void Memory::setTimerAdzanDuhur(unsigned char timer)
 {
-    writeByte(TAMBAH_KURANG_DUHUR, timer);
+    writeByte(TIMER_ADZAN_DUHUR, timer);
 }
 unsigned char Memory::getTimerAdzanAshar()
 {
@@ -220,7 +220,6 @@ unsigned char Memory::getVolumemp3()
 }
 void Memory::setVolumemp3(unsigned char volumemp3)
 {
-    // disable intterup
     writeByte(VOLUME_MP3, volumemp3);
 }
 unsigned char Memory::getEqualizer()
@@ -440,7 +439,7 @@ void Memory::setKota(int kota)
 }
 int Memory::getTimeOn()
 {
-    return readInt(KOTA);
+    return readInt(TIME_ON);
 }
 int Memory::getTimeOff()
 {

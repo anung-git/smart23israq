@@ -72,7 +72,7 @@ Tilawah tilawah = Tilawah();
 //==================================
 // Var Global
 volatile int alamat_eprom = 0;
-unsigned char temp_min, temp_jam,  rename_bt = 0; //, limaDetik;
+unsigned char temp_min, temp_jam; //, limaDetik;
 unsigned char jam, menit, hari;
 
 void ScanDMD()
@@ -131,6 +131,8 @@ void setup()
   tilawah.setEprom(&eeprom);
   myRtc.readAll();
   baca_jadwal();
+  Serial1.print("AT+NAME");
+  Serial1.println(namaBluetooth);
 }
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
