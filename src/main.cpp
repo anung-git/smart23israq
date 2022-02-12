@@ -72,7 +72,7 @@ Tilawah tilawah = Tilawah();
 //==================================
 // Var Global
 volatile int alamat_eprom = 0;
-unsigned char temp_min, temp_jam, temp_hri, rename_bt = 0; //, limaDetik;
+unsigned char temp_min, temp_jam,  rename_bt = 0; //, limaDetik;
 unsigned char jam, menit, hari;
 
 void ScanDMD()
@@ -162,10 +162,6 @@ void loop()
     {
       baca_jadwal();
       temp_jam = jam;
-    }
-    if (hari != temp_hri)
-    {
-      temp_hri = hari;
     }
     if (myBluetooth.available())
     {

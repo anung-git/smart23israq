@@ -71,7 +71,7 @@ void Memory::setBeep(unsigned char beep)
 }
 unsigned char Memory::getTimerAdzanSubuh()
 {
-    return readByte(TIME_TILAWAH_SUBUH);
+    return readByte(TIMER_ADZAN_SUBUH);
 }
 void Memory::setTimerAdzanSubuh(unsigned char timer)
 {
