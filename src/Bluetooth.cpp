@@ -131,8 +131,7 @@ void Bluetooth::setIqomah(String &data)
     sholat = ((data[4] - '0') * 10) + (data[5] - '0');
     eprom->setIqomahSubuh(iqomah);
     eprom->setLamaSholatSubuh(sholat);
-    // writeString(text_iq_subuh,data.substring(6));
-    _text_iqomah = TEXT_IQ_SUBUH; // text_iq_subuh;
+    _text_iqomah = addres.TEXT_IQ_SUBUH; // text_iq_subuh;
   }
   if (data[1] == '1')
   {
@@ -140,8 +139,7 @@ void Bluetooth::setIqomah(String &data)
     sholat = ((data[4] - '0') * 10) + (data[5] - '0');
     eprom->setIqomahDuhur(iqomah);
     eprom->setLamaSholatDuhur(sholat);
-    // writeString(text_iq_duhur,data.substring(6));
-    _text_iqomah = TEXT_IQ_DUHUR; // text_iq_duhur;
+    _text_iqomah = addres.TEXT_IQ_DUHUR; // text_iq_duhur;
   }
   if (data[1] == '2')
   {
@@ -149,8 +147,7 @@ void Bluetooth::setIqomah(String &data)
     sholat = ((data[4] - '0') * 10) + (data[5] - '0');
     eprom->setIqomahAshar(iqomah);
     eprom->setLamaSholatAshar(sholat);
-    // writeString(text_iq_ashar,data.substring(6));
-    _text_iqomah = TEXT_IQ_ASHAR; // text_iq_ashar;
+    _text_iqomah = addres.TEXT_IQ_ASHAR; // text_iq_ashar;
   }
   if (data[1] == '3')
   {
@@ -158,8 +155,7 @@ void Bluetooth::setIqomah(String &data)
     sholat = ((data[4] - '0') * 10) + (data[5] - '0');
     eprom->setIqomahMaghrib(iqomah);
     eprom->setLamaSholatMaghrib(sholat);
-    // writeString(text_iq_maghrib,data.substring(6));
-    _text_iqomah = TEXT_IQ_MAGHRIB; // text_iq_maghrib;
+    _text_iqomah = addres.TEXT_IQ_MAGHRIB; // text_iq_maghrib;
   }
   if (data[1] == '4')
   {
@@ -167,8 +163,7 @@ void Bluetooth::setIqomah(String &data)
     sholat = ((data[4] - '0') * 10) + (data[5] - '0');
     eprom->setIqomahIsya(iqomah);
     eprom->setLamaSholatIsya(sholat);
-    // writeString(text_iq_isya,data.substring(6));
-    _text_iqomah = TEXT_IQ_ISYA; // text_iq_isya;
+    _text_iqomah = addres.TEXT_IQ_ISYA; // text_iq_isya;
   }
   if (data[1] == '5')
   {
@@ -176,8 +171,7 @@ void Bluetooth::setIqomah(String &data)
     sholat = ((data[4] - '0') * 10) + (data[5] - '0');
     eprom->setIqomahJumat(iqomah);
     eprom->setLamaSholatJumat(sholat);
-    // writeString(text_iq_jumat,data.substring(6));
-    _text_iqomah = TEXT_IQ_JUMAT; // text_iq_jumat;
+    _text_iqomah = addres.TEXT_IQ_JUMAT; // text_iq_jumat;
   }
   int _size = data.length();
   int i, u = 0;
@@ -187,7 +181,6 @@ void Bluetooth::setIqomah(String &data)
     u++;
   }
   EEPROM.write(_text_iqomah + u, '\0');
-  // EEPROM.put(1, PARAMETER);
   Serial1.print("SetIqom\n");
 }
 void Bluetooth::setAdzan(String &data)
@@ -326,16 +319,12 @@ void Bluetooth::setText(String &data)
   // 1234 %S tes karakter
   // writeString(text_run,input_serial);
   int _size = data.length();
-  int i;
-  for (i = 0; i < _size; i++)
+  for (int i = 0; i < _size; i++)
   {
-
-    EEPROM.write(TEXT_RUN + i, data[i]);
+    EEPROM.write(addres.TEXT_RUN + i, data[i]);
   }
-  EEPROM.write(TEXT_RUN + _size, '\0'); // Add termination null character for String Data
+  EEPROM.write(addres.TEXT_RUN + _size, '\0'); // Add termination null character for String Data
   Serial1.print("SetText\n");
-  // alamat_eprom = 0;
-  // display_eprom(text_run);
 }
 void Bluetooth::setFix(String &data)
 {
@@ -358,7 +347,6 @@ void Bluetooth::setFix(String &data)
     jadwal_fix_maghrib = ((((data[17] - '0') * 10) + (data[18] - '0')) * 60) + (((data[19] - '0') * 10) + (data[20] - '0'));
   if (data[4] == 'Y')
     jadwal_fix_isya = ((((data[21] - '0') * 10) + (data[22] - '0')) * 60) + (((data[23] - '0') * 10) + (data[24] - '0'));
-  // EEPROM.put(1, PARAMETER);
   eprom->setJadwalFixSubuh(jadwal_fix_subuh);
   eprom->setJadwalFixDzuhur(jadwal_fix_duhur);
   eprom->setJadwalFixAshar(jadwal_fix_ashar);

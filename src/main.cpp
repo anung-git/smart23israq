@@ -37,13 +37,13 @@ void setParameter();
 #define DISPLAYS_ACROSS 2
 #define DISPLAYS_DOWN 1
 
-#define text_iq_subuh 100
-#define text_iq_duhur 200
-#define text_iq_ashar 300
-#define text_iq_maghrib 400
-#define text_iq_isya 500
-#define text_iq_jumat 600
-#define text_run 700
+// #define alamat.TEXT_IQ_SUBUH 100
+// #define alamat.TEXT_IQ_DUHUR 200
+// #define alamat.TEXT_IQ_ASHAR 300
+// #define alamat.TEXT_IQ_MAGHRIB 400
+// #define alamat.TEXT_IQ_ISYA 500
+// #define alamat.TEXT_IQ_JUMAT 600
+// #define alamat.TEXT_RUN 700
 
 #define pinLampu 6
 #define LAMPUON HIGH
@@ -110,13 +110,12 @@ void setup()
   myDFPlayer.begin(Serial);
   myDFPlayer.setTimeOut(500);
   dmd.selectFont(myFont);
-  dmd.setBrightness(7);
   myDFPlayer.reset();
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
   myDFPlayer.EQ(eeprom.getEqualizer());     // Set equalizer From 0 to 5
   myDFPlayer.volume(eeprom.getVolumemp3()); // Set volume From 0 to 30
   myDFPlayer.play(1);                       // Play the first mp3
-  display_eprom(text_run);
+  display_eprom(alamat.TEXT_RUN);
   power.setTimeOn(eeprom.getTimeOn());
   power.setTimeOff(eeprom.getTimeOff());
   myTombol.setBuzer(&myBuzer);
@@ -174,13 +173,13 @@ void loop()
         break;
       case 2:
         alamat_eprom = 0;
-        display_eprom(text_run);
+        display_eprom(alamat.TEXT_RUN);
         break;
       case 3:
         reset();
         baca_jadwal();
         alamat_eprom = 0;
-        display_eprom(text_run);
+        display_eprom(alamat.TEXT_RUN);
         break;
       }
     }
@@ -193,8 +192,7 @@ void loop()
   if (power.getState() == true) // hidup
   {
     mySegmen.displayNormal();
-    dmd.setBrightness(7);
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
   }
   else // mati
   {
@@ -241,7 +239,7 @@ void setOffsite()
   while (myTombol.getPos() == (200))
   {
     mySegmen.loop();
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myTombol.loop();
     mySegmen.setTime(jam / 100, jam % 100);
     if (event300ms.getEvent())
@@ -283,7 +281,7 @@ void setOffsite()
     while (myTombol.getPos() == (201 + i))
     {
       mySegmen.loop();
-      tampil_text(text_run);
+      tampil_text(alamat.TEXT_RUN);
       myTombol.loop();
       mySegmen.setTime(0, abs(jam));
       if (jam < 0)
@@ -322,7 +320,7 @@ void setOffsite()
   second.reset();
   while (myTombol.getPos() == 206)
   {
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myBuzer.loop();
     mySegmen.loop();
     if (second.getEvent())
@@ -365,7 +363,7 @@ void setParameter()
       while (myTombol.getPos() == (100 + i))
       {
         mySegmen.loop();
-        tampil_text(text_run);
+        tampil_text(alamat.TEXT_RUN);
         myTombol.loop();
         mySegmen.setTime(jam, param[i]);
         if (event300ms.getEvent())
@@ -386,7 +384,7 @@ void setParameter()
       while (myTombol.getPos() == (100 + i))
       {
         mySegmen.loop();
-        tampil_text(text_run);
+        tampil_text(alamat.TEXT_RUN);
         myTombol.loop();
         mySegmen.setTime(jam, 0);
         if (event300ms.getEvent())
@@ -431,7 +429,7 @@ void setParameter()
   second.reset();
   while (myTombol.getPos() == 110)
   {
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myBuzer.loop();
     mySegmen.loop();
     if (second.getEvent())
@@ -460,7 +458,7 @@ void setJam()
   while (myTombol.getPos() == 1)
   {
     mySegmen.loop();
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myTombol.loop();
     mySegmen.setTime(jam, menit);
     if (event300ms.getEvent())
@@ -478,7 +476,7 @@ void setJam()
   while (myTombol.getPos() == 2)
   {
     mySegmen.loop();
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myTombol.loop();
     mySegmen.setTime(jam, menit);
 
@@ -498,7 +496,7 @@ void setJam()
   while (myTombol.getPos() == 3)
   {
     mySegmen.loop();
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myTombol.loop();
     mySegmen.setTanggal(tanggal, bulan, tahun);
     if (event300ms.getEvent())
@@ -516,7 +514,7 @@ void setJam()
   while (myTombol.getPos() == 4)
   {
     mySegmen.loop();
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myTombol.loop();
     mySegmen.setTanggal(tanggal, bulan, tahun);
     if (event300ms.getEvent())
@@ -534,7 +532,7 @@ void setJam()
   while (myTombol.getPos() == 5)
   {
     mySegmen.loop();
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myTombol.loop();
     mySegmen.setTanggal(tanggal, bulan, tahun);
     if (event300ms.getEvent())
@@ -550,7 +548,7 @@ void setJam()
   second.reset();
   while (myTombol.getPos() == 6)
   {
-    tampil_text(text_run);
+    tampil_text(alamat.TEXT_RUN);
     myBuzer.loop();
     mySegmen.loop();
     if (second.getEvent())
@@ -608,8 +606,8 @@ void alarm_on()
   {
   case alamat.ALARM_IMSYA:
     time_adzan = 60;
-    display_eprom(text_run);
-    _alamat_text = text_run;
+    display_eprom(alamat.TEXT_RUN);
+    _alamat_text = alamat.TEXT_RUN;
     mySegmen.displayImsya();
     break;
   case alamat.ALARM_SUBUH:
@@ -617,14 +615,14 @@ void alarm_on()
     time_adzan = eeprom.getTimerAdzanSubuh() * 60;
     count_iqomah = eeprom.getIqomahSubuh() * 60;
     stanby_sholat = eeprom.getLamaSholatSubuh() * 60;
-    display_eprom(text_iq_subuh);
-    _alamat_text = text_iq_subuh;
+    display_eprom(alamat.TEXT_IQ_SUBUH);
+    _alamat_text = alamat.TEXT_IQ_SUBUH;
     mySegmen.displaySubuh();
     break;
   case alamat.ALARM_SURUQ:
     time_adzan = 60;
-    display_eprom(text_run);
-    _alamat_text = text_run;
+    display_eprom(alamat.TEXT_RUN);
+    _alamat_text = alamat.TEXT_RUN;
     mySegmen.displaySuruq();
     break;
 
@@ -633,8 +631,8 @@ void alarm_on()
     time_adzan = eeprom.getTimerAdzanDuhur() * 60;
     count_iqomah = eeprom.getIqomahDuhur() * 60;
     stanby_sholat = eeprom.getLamaSholatDuhur() * 60;
-    display_eprom(text_iq_duhur);
-    _alamat_text = text_iq_duhur;
+    display_eprom(alamat.TEXT_IQ_DUHUR);
+    _alamat_text = alamat.TEXT_IQ_DUHUR;
     mySegmen.displayDzuhur();
     break;
   case alamat.ALARM_ASHAR:
@@ -642,8 +640,8 @@ void alarm_on()
     time_adzan = eeprom.getTimerAdzanAshar() * 60;
     count_iqomah = eeprom.getIqomahAshar() * 60;
     stanby_sholat = eeprom.getLamaSholatAshar() * 60;
-    display_eprom(text_iq_ashar);
-    _alamat_text = text_iq_ashar;
+    display_eprom(alamat.TEXT_IQ_ASHAR);
+    _alamat_text = alamat.TEXT_IQ_ASHAR;
     mySegmen.displayAshar();
     break;
   case alamat.ALARM_MAGHRIB:
@@ -651,8 +649,8 @@ void alarm_on()
     time_adzan = eeprom.getTimerAdzanMaghrib() * 60;
     count_iqomah = eeprom.getIqomahMaghrib() * 60;
     stanby_sholat = eeprom.getLamaSholatMaghrib() * 60;
-    display_eprom(text_iq_maghrib);
-    _alamat_text = text_iq_maghrib;
+    display_eprom(alamat.TEXT_IQ_MAGHRIB);
+    _alamat_text = alamat.TEXT_IQ_MAGHRIB;
     mySegmen.displayMaghrib();
     break;
   case alamat.ALARM_ISYA:
@@ -660,8 +658,8 @@ void alarm_on()
     time_adzan = eeprom.getTimerAdzanIsya() * 60;
     count_iqomah = eeprom.getIqomahIsya() * 60;
     stanby_sholat = eeprom.getLamaSholatIsya() * 60;
-    display_eprom(text_iq_isya);
-    _alamat_text = text_iq_isya;
+    display_eprom(alamat.TEXT_IQ_ISYA);
+    _alamat_text = alamat.TEXT_IQ_ISYA;
     mySegmen.displayIsya();
     break;
   case alamat.ALARM_JUMAT:
@@ -669,8 +667,8 @@ void alarm_on()
     time_adzan = eeprom.getTimerAdzanJumat() * 60;
     count_iqomah = eeprom.getIqomahJumat() * 60;
     stanby_sholat = eeprom.getLamaSholatJumat() * 60;
-    display_eprom(text_iq_jumat);
-    _alamat_text = text_iq_jumat;
+    display_eprom(alamat.TEXT_IQ_JUMAT);
+    _alamat_text = alamat.TEXT_IQ_JUMAT;
     mySegmen.displayJumat();
     break;
   }
@@ -758,7 +756,7 @@ void alarm_on()
       dmd.clearScreen(true);
     }
   }
-  display_eprom(text_run);
+  display_eprom(alamat.TEXT_RUN);
   alamat_eprom = 0;
 }
 void baca_jadwal()
@@ -910,41 +908,47 @@ void reset()
   for (int t = 0; t < 420; t++)
   {
     char chr = pgm_read_byte_near(runningtext + t);
-    EEPROM.write(text_run + t, chr);
+    EEPROM.write(alamat.TEXT_RUN + t, chr);
   }
+  delay(10);
   for (int n = 0; n < 20; n++)
   { // for(i=0;i<20;i++){
     char chr = pgm_read_byte_near(textsholat_sb + n);
-    EEPROM.write(text_iq_subuh + n, chr);
+    EEPROM.write(alamat.TEXT_IQ_SUBUH + n, chr);
   }
+  delay(10);
 
   for (int n = 0; n < 21; n++)
   { // for(i=0;i<21;i++){
     char chr = pgm_read_byte_near(textsholat_dh + n);
-    EEPROM.write(text_iq_duhur + n, chr);
+    EEPROM.write(alamat.TEXT_IQ_DUHUR + n, chr);
   }
+  delay(10);
 
   for (int n = 0; n < 20; n++)
   { // for(i=0;i<20;i++){
     char chr = pgm_read_byte_near(textsholat_as + n);
-    EEPROM.write(text_iq_ashar + n, chr);
+    EEPROM.write(alamat.TEXT_IQ_ASHAR + n, chr);
   }
 
+  delay(10);
   for (int n = 0; n < 22; n++)
   { // for(i=0;i<22;i++){
     char chr = pgm_read_byte_near(textsholat_mg + n);
-    EEPROM.write(text_iq_maghrib + n, chr);
+    EEPROM.write(alamat.TEXT_IQ_MAGHRIB + n, chr);
   }
 
+  delay(10);
   for (int n = 0; n < 19; n++)
   { // for(int i=0;i<19;i++){
     char chr = pgm_read_byte_near(textsholat_is + n);
-    EEPROM.write(text_iq_isya + n, chr);
+    EEPROM.write(alamat.TEXT_IQ_ISYA + n, chr);
   }
 
+  delay(10);
   for (int n = 0; n < 70; n++)
   { // for(i=0;i<70;i++){
     char chr = pgm_read_byte_near(textsholat_jm + n);
-    EEPROM.write(text_iq_jumat + n, chr);
+    EEPROM.write(alamat.TEXT_IQ_JUMAT + n, chr);
   }
 }

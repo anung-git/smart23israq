@@ -206,7 +206,7 @@ class DMD
   //Insert the calls to this function into the main loop for the highest call rate, or from a timer interrupt
   void scanDisplayBySPI();
 
-  void setBrightness(byte brightness);
+  // void setBrightness(byte brightness);
 
   private:
     void drawCircleSub( int cx, int cy, int x, int y, byte bGraphicsMode );
@@ -230,7 +230,6 @@ class DMD
     byte DisplaysHigh;
     byte DisplaysTotal;
     int row1, row2, row3;
-    byte saklar=1;
 
     //scanning pointer into bDMDScreenRAM, setup init @ 48 for the first valid scan
     volatile byte bDMDByte;

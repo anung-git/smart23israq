@@ -5,13 +5,14 @@
 #include "Rtc.h"
 #include "Buzer.h"
 #include "power.h"
+#include "Alamat.h"
 #include "DFRobotDFPlayerMini.h"
 #include <Arduino.h>
 #include <EEPROM.h>
 class Bluetooth
 {
 private:
-    // EpromObject *bluetoothEprom;
+    Alamat addres = Alamat();
     Memory *eprom;
     Rtc *rtc;
     DFRobotDFPlayerMini *myPlayer;
@@ -35,14 +36,6 @@ private:
         RESET_PABRIK,
         command_end,
     };
-
-    const unsigned int TEXT_IQ_SUBUH = 100;
-    const unsigned int TEXT_IQ_DUHUR = 200;
-    const unsigned int TEXT_IQ_ASHAR = 300;
-    const unsigned int TEXT_IQ_MAGHRIB = 400;
-    const unsigned int TEXT_IQ_ISYA = 500;
-    const unsigned int TEXT_IQ_JUMAT = 600;
-    const unsigned int TEXT_RUN = 700;
 
     volatile unsigned char command;
     unsigned char status;

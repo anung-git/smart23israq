@@ -83,8 +83,8 @@ DMD::DMD(byte panelsWide, byte panelsHigh){
 //    OCR1A = 1023;   // LED initially off
 }
 
-void DMD::setBrightness(byte brightness){
-  saklar=brightness;
+// void DMD::setBrightness(byte brightness){
+//   saklar=brightness;
 //    switch (brightness) {
 //        case 0:         
 //            OCR1A = 255;
@@ -112,7 +112,7 @@ void DMD::setBrightness(byte brightness){
 //            break;
 //    }
 
-}
+// }
 //DMD::~DMD()
 //{
 //   // nothing needed here
@@ -430,7 +430,6 @@ void DMD::drawTestPattern(byte bPattern){
 --------------------------------------------------------------------------------------*/
 
 void DMD::scanDisplayBySPI(){
-  if(saklar==0)return;
     //if PIN_OTHER_SPI_nCS is in use during a DMD scan request then scanDisplayBySPI() will exit without conflict! (and skip that scan)
    // if( digitalRead( PIN_OTHER_SPI_nCS ) == HIGH )
    //if(  HIGH ){
