@@ -37,13 +37,6 @@ void setParameter();
 #define DISPLAYS_ACROSS 2
 #define DISPLAYS_DOWN 1
 
-// #define alamat.TEXT_IQ_SUBUH 100
-// #define alamat.TEXT_IQ_DUHUR 200
-// #define alamat.TEXT_IQ_ASHAR 300
-// #define alamat.TEXT_IQ_MAGHRIB 400
-// #define alamat.TEXT_IQ_ISYA 500
-// #define alamat.TEXT_IQ_JUMAT 600
-// #define alamat.TEXT_RUN 700
 
 #define pinLampu 6
 #define LAMPUON HIGH
@@ -146,14 +139,6 @@ void loop()
     menit = myRtc.getMenit();
     jam = myRtc.getJam();
     hari = myRtc.getHari();
-    // Serial.print("volume = ");
-    // Serial.println(PARAMETER.volumeMp3);
-    // Serial.print("EQ = ");
-    // Serial.println(PARAMETER.equalizer);
-    // Serial.print("on = ");
-    // Serial.println(PARAMETER.timeOn);
-    // Serial.print("addr volume mp3 = ");
-    // Serial.println(int(&PARAMETER));
     if (menit != temp_min)
     {
       alarm();

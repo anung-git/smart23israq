@@ -97,10 +97,33 @@ void Tilawah::setTime(unsigned char jam, unsigned char menit)
     int time = (jam * 60) + menit;
     int timeTilawahSubuh = timeSholat[0] - eprom->getTimeTilawahSubuh();
     int timeTilawahDzuhur = timeSholat[1] - eprom->getTimeTilawahDzuhur();
+    int timeTilawahJumat = timeSholat[1] - eprom->getTimeTilawahJumat();
     int timeTilawahAshar = timeSholat[2] - eprom->getTimeTilawahAshar();
     int timeTilawahMaghrib = timeSholat[3] - eprom->getTimeTilawahMaghrib();
     int timeTilawahIsya = timeSholat[4] - eprom->getTimeTilawahIsya();
-    int timeTilawahJumat = timeSholat[5] - eprom->getTimeTilawahJumat();
+
+    if (hari == 5) // jumatan
+    {
+        if (time == timeTilawahJumat)
+        {
+            unsigned char track = eprom->getIndexTilawahJumat();
+            if (track != 0)
+            {
+                player->playFolder(2, track);
+            }
+        }
+    }
+    else // dzuhur
+    {
+        if (time == timeTilawahDzuhur)
+        {
+            unsigned char track = eprom->getIndexTilawahDzuhur();
+            if (track != 0)
+            {
+                player->playFolder(2, track);
+            }
+        }
+    }
 
     if (time == timeTilawahSubuh)
     {
@@ -110,18 +133,7 @@ void Tilawah::setTime(unsigned char jam, unsigned char menit)
             player->playFolder(2, track);
         }
     }
-    else if (time == timeTilawahDzuhur)
-    {
-        if (hari == 5)
-        {
-            return; // jumat
-        }
-        unsigned char track = eprom->getIndexTilawahDzuhur();
-        if (track != 0)
-        {
-            player->playFolder(2, track);
-        }
-    }
+
     else if (time == timeTilawahAshar)
     {
         unsigned char track = eprom->getIndexTilawahAshar();
@@ -141,18 +153,6 @@ void Tilawah::setTime(unsigned char jam, unsigned char menit)
     else if (time == timeTilawahIsya)
     {
         unsigned char track = eprom->getIndexTilawahIsya();
-        if (track != 0)
-        {
-            player->playFolder(2, track);
-        }
-    }
-    else if (time == timeTilawahJumat)
-    {
-        if (hari != 5)
-        {
-            return; // jumat
-        }
-        unsigned char track = eprom->getIndexTilawahJumat();
         if (track != 0)
         {
             player->playFolder(2, track);

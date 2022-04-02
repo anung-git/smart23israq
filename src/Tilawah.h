@@ -8,7 +8,7 @@ class Tilawah
 private:
     DFRobotDFPlayerMini *player;
     Memory *eprom;
-    int timeSholat[6];
+    int timeSholat[5];
     unsigned char hari;
 
 public:

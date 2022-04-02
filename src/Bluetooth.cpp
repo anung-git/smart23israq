@@ -46,8 +46,6 @@ void Bluetooth::playManual(String &data)
   // 1234 %W W010
   // stop
   // 1234 %W STOP
-  // myDFPlayer.play(1);  //Play the first mp3
-  // myDFPlayer.stop();
   command = command_end;
   unsigned char _track = ((data[1] - '0') * 100) + ((data[2] - '0') * 10) + (data[3] - '0');
   unsigned char volume = (data[1] - '0') * 10 + (data[2] - '0');
