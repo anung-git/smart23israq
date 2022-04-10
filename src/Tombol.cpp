@@ -153,6 +153,7 @@ Tombol::Tombol(unsigned char pinMenu, unsigned char pinUp, unsigned char pinDown
     pinMode(_pinMenu, INPUT_PULLUP);
     pinMode(_pinUp, INPUT_PULLUP);
     pinMode(_pinDown, INPUT_PULLUP);
+    pos = 0;
 }
 
 Tombol::~Tombol()

@@ -37,7 +37,6 @@ void setParameter();
 #define DISPLAYS_ACROSS 2
 #define DISPLAYS_DOWN 1
 
-
 #define pinLampu 6
 #define LAMPUON HIGH
 #define LAMPUOFF LOW
@@ -87,14 +86,6 @@ void setup()
     delay(250);
     myBuzer.setOff();
     delay(250);
-    myTombol.loop();
-    if (myTombol.getPos() == 200)
-    {
-      eeprom.setKota(0);
-      reset();
-      myTombol.resetMenu();
-      break;
-    }
   }
   Serial1.begin(bluetooth);
   Serial.begin(9600);
@@ -103,11 +94,10 @@ void setup()
   myDFPlayer.begin(Serial);
   myDFPlayer.setTimeOut(500);
   dmd.selectFont(myFont);
-  myDFPlayer.reset();
-  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
+  // myDFPlayer.reset();
+  // myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
   myDFPlayer.EQ(eeprom.getEqualizer());     // Set equalizer From 0 to 5
   myDFPlayer.volume(eeprom.getVolumemp3()); // Set volume From 0 to 30
-  myDFPlayer.play(1);                       // Play the first mp3
   display_eprom(alamat.TEXT_RUN);
   power.setTimeOn(eeprom.getTimeOn());
   power.setTimeOff(eeprom.getTimeOff());
@@ -125,6 +115,7 @@ void setup()
   baca_jadwal();
   Serial1.print("AT+NAME");
   Serial1.println(namaBluetooth);
+  myDFPlayer.play(1); // Play the first mp3
 }
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
